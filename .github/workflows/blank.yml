@@ -29,7 +29,7 @@ jobs:
       # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
         run: |
-          Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse
+          Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse -Force
 
       # Start the discord-bot.py process (& makes it run in the background)
       - name: Start discord-bot.py
