@@ -21,6 +21,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      - name: Stop discord-bot.py
+        run: |
+          Get-ScheduledTask "PythonBot1" | Stop-ScheduledTask
+
       # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
         run: |
@@ -29,4 +33,4 @@ jobs:
       # Start the discord-bot.py process (& makes it run in the background)
       - name: Start discord-bot.py
         run: |
-          Import-Module TaskScheduler;Get-ScheduledTask -TaskName "PythonBot1" | Restart-ScheduledTask
+          Get-ScheduledTask "PythonBot1" | Start-ScheduledTask
