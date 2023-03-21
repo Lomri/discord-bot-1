@@ -4,6 +4,7 @@ import discord
 import re
 import datetime
 import asyncio
+from functions import *
 
 load_dotenv()
 
@@ -14,36 +15,24 @@ prefix = '!'
 def meme(*arguments):
   return "Hello world!"
 
-def printText(*arguments):
-    arguments_as_string = "".join(list(arguments))
-    return arguments_as_string
+#def printText(*arguments: list):
+    #arguments_as_string = ""
+    #for list in arguments:
+      #for item in list:
+        #arguments_as_string += item
+        #arguments_as_string += " "
+    #arguments_as_string = arguments_as_string[:-1]
+    #return arguments_as_string
 
 async def delayedPrint(*arguments):
     try:
         if(len(arguments) == 2):
             text, delay = arguments
-            await delayInSeconds(float(delay))
+            #await async.sleep(float(delay))
             return text
     except ValueError:
         return "Function used incorrectly"
 
-async def delayInSeconds(time_in_seconds):
-    loop = asyncio.get_running_loop()
-    end_time = loop.time() + time_in_seconds
-    while True:
-        print(datetime.datetime.now())
-        if (loop.time() + 1.0) >= end_time:
-            break
-        await asyncio.sleep(1)
-
-def find_first_string(arguments):
-    arguments_as_string = "".join(list(arguments))
-    match = re.search('"([^"]*)"', arguments_as_string)
-    try:
-      if(match):
-          return match.group(1)
-    except ValueError:
-       return "No message to print"
 
 command_dictionary = {
   'meme': meme,
@@ -63,8 +52,12 @@ class MyClient(discord.Client):
         key_with_space_found = message.content.startswith(prefix_with_command + " ")
         only_key_found = message.content == prefix_with_command
         if key_with_space_found or only_key_found:
-            arguments = message.content.split(" ")[1:]
-            response_message = await command_dictionary[key](arguments)
+            arguments = message.content.split(" ")
+            if(len(arguments) > 1 ):
+               arguments = arguments[1:]
+            else:
+               arguments = "No arguments"
+            response_message = command_dictionary[key](arguments)
             await message.channel.send(response_message)
 
 intents = discord.Intents.default()
