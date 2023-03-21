@@ -31,7 +31,7 @@ jobs:
         run: |
           Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse
 
-      # Start the discord-bot.py process
+      # Start the discord-bot.py process (& makes it run in the background)
       - name: Start discord-bot.py
         run: |
-          Start-Process -FilePath "C:\Bots\Bot_1\Scripts\discord-bot.py" -WindowStyle Hidden
+          python C:\Bots\Bot_1\Scripts\discord-bot.py &
