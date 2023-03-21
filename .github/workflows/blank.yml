@@ -21,11 +21,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Stop the existing discord-bot.py process
-      - name: Stop discord-bot.py
-        run: |
-          if(Get-Process -Name "python3.10" -erroraction ignore) { Get-Process -Name "python3.10" | Stop-Process } 
-
       # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
         run: |
@@ -34,4 +29,4 @@ jobs:
       # Start the discord-bot.py process (& makes it run in the background)
       - name: Start discord-bot.py
         run: |
-          start /B "" "pythonw C:\Bots\Bot_1\Scripts\discord-bot.py"
+          Import-Module TaskScheduler;Get-ScheduledTask -TaskName "PythonBot1" | Restart-ScheduledTask
