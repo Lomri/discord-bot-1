@@ -24,7 +24,7 @@ jobs:
       # Stop the existing discord-bot.py process
       - name: Stop discord-bot.py
         run: |
-          Get-Process -Name "python" | Where-Object { $_.Path -eq "C:\Bots\Bot_1\Scripts\discord-bot.py" } | Stop-Process
+          if(Get-Process -Name "python" | Where-Object { $_.Path -eq "C:\Bots\Bot_1\Scripts\discord-bot.py" }) { Get-Process -Name "python" | Where-Object { $_.Path -eq "C:\Bots\Bot_1\Scripts\discord-bot.py" | Stop-Process } 
 
       # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
