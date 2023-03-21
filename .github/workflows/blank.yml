@@ -34,4 +34,4 @@ jobs:
       # Start the discord-bot.py process (& makes it run in the background)
       - name: Start discord-bot.py
         run: |
-          python C:\Bots\Bot_1\Scripts\discord-bot.py &
+          nohup sh -c 'python C:\Bots\Bot_1\Scripts\discord-bot.py > /dev/null 2>&1 &'
