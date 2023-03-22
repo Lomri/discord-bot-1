@@ -1,5 +1,10 @@
 import re
 import asyncio
+import inspect
+import csv
+
+command_file = 'command_list.csv'
+command_dictionary = {}
 
 async def printText(*arguments):
   """
@@ -91,3 +96,14 @@ def list_find_first_string(arguments: list):
       return found_text, remaining_list
   else:
       return found_text, remaining_list
+  
+async def reloadCommandList(*arguments):
+  with open(command_file, 'r', newline='') as file:
+    reader = csv.DictReader(file)
+    command_dictionary = {row['command']: row['function'] for row in reader}
+  return command_dictionary
+
+async def helpCommandList(*arguments):
+  channel = arguments[0]
+  function_list = await reloadCommandList()
+  await channel.send(function_list)

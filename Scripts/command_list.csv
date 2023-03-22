@@ -1,0 +1,4 @@
+command,function
+help,helpCommandList
+print,printText
+dprint,delayedPrint
