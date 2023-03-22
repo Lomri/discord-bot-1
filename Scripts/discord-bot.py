@@ -1,9 +1,6 @@
 import os
 from dotenv import load_dotenv
 import discord
-import re
-import datetime
-import asyncio
 from functions import *
 
 load_dotenv()
@@ -12,32 +9,9 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 prefix = '!'
 
-def meme(*arguments):
-  return "Hello world!"
-
-#def printText(*arguments: list):
-    #arguments_as_string = ""
-    #for list in arguments:
-      #for item in list:
-        #arguments_as_string += item
-        #arguments_as_string += " "
-    #arguments_as_string = arguments_as_string[:-1]
-    #return arguments_as_string
-
-async def delayedPrint(*arguments):
-    try:
-        if(len(arguments) == 2):
-            text, delay = arguments
-            #await async.sleep(float(delay))
-            return text
-    except ValueError:
-        return "Function used incorrectly"
-
-
 command_dictionary = {
-  'meme': meme,
   'print': printText,
-  'delayedprint': delayedPrint
+  'dprint': delayedPrint
 }
 
 class MyClient(discord.Client):
@@ -57,12 +31,12 @@ class MyClient(discord.Client):
                arguments = arguments[1:]
             else:
                arguments = "No arguments"
-            response_message = command_dictionary[key](arguments)
-            await message.channel.send(response_message)
+            selected_channel = message.channel
+            response_message = await command_dictionary[key](selected_channel, arguments)
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 
 client = MyClient(intents=intents)
-client.run(TOKEN) # Replace with your own token
+client.run(TOKEN)
