@@ -1,0 +1,39 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "deploy_bot"
+  deploy_bot:
+    # The name of the runner that the job will run on
+    runs-on: self-hosted
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Stop Discord bot
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        run: |
+          Get-ScheduledTask "PythonBot1" | Stop-ScheduledTask
+
+      # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
+      - name: Copy Scripts folder
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        run: |
+          Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse -Force
+
+      # Start the discord-bot.py process (& makes it run in the background)
+      - name: Start Discord bot
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        run: |
+          Get-ScheduledTask "PythonBot1" | Start-ScheduledTask
