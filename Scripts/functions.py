@@ -23,6 +23,7 @@ async def printText(*arguments):
   arguments_as_string = arguments_as_string[:-1]
   
   await channel.send(arguments_as_string)
+  return True
 
 async def delayedPrint(*arguments):
   """
@@ -56,6 +57,7 @@ async def delayedPrint(*arguments):
     print(f"text: {text} remaining_list: {remaining_list}")
     await asyncio.sleep(float(remaining_list[0]))
     await channel.send(text)
+    return True
   elif(channel):
     channel = arguments[0]
     await channel.send(f"Wrong amount of arguments! 2 expected. Found: {len(arguments)}")

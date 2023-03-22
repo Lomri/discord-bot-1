@@ -32,7 +32,7 @@ class MyClient(discord.Client):
             else:
                arguments = "No arguments"
             selected_channel = message.channel
-            response_message = await command_dictionary[key](selected_channel, arguments)
+            function_worked = await command_dictionary[key](selected_channel, arguments)
 
 intents = discord.Intents.default()
 intents.message_content = True
