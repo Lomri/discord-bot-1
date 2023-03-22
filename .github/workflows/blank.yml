@@ -22,15 +22,18 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Stop Discord bot
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
           Get-ScheduledTask "PythonBot1" | Stop-ScheduledTask
 
       # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
           Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse -Force
 
       # Start the discord-bot.py process (& makes it run in the background)
       - name: Start Discord bot
+        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
           Get-ScheduledTask "PythonBot1" | Start-ScheduledTask
