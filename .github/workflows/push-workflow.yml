@@ -21,20 +21,31 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      - name: Check for modified files in the Scripts directory
+        id: check-modified-files
+        run: |
+          for file in "${{ github.event.head_commit.modified[@] }}"; do
+            if [[ $file == Scripts/* ]]; then
+              echo "Modified file $file is in the Scripts/ directory"
+              echo "::set-output name=modified::true"
+              break
+            fi
+          done
+
       # Stops the discord-bot.py process
       - name: Stop Discord bot
-        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        if: steps.check-modified-files.outputs.modified == 'true'
         run: |
           Get-ScheduledTask "PythonBot1" | Stop-ScheduledTask
 
       # Copies the Repository\Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
-        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        if: steps.check-modified-files.outputs.modified == 'true'
         run: |
           Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse -Force
 
       # Starts the discord-bot.py process
       - name: Start Discord bot
-        if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
+        if: steps.check-modified-files.outputs.modified == 'true'
         run: |
           Get-ScheduledTask "PythonBot1" | Start-ScheduledTask
