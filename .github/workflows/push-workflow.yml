@@ -24,7 +24,7 @@ jobs:
       - name: Check for modified files in the Scripts directory
         id: check-modified-files
         run: |
-          for file in "${{ github.event.head_commit.modified }}"; do
+          for file in ${{ github.event.head_commit.modified }}; do
             if [[ $file == Scripts/* ]]; then
               echo "Modified file $file is in the Scripts/ directory"
               echo "::set-output name=modified::true"
