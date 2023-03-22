@@ -2,7 +2,7 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # Triggers the workflow on push events but only for the "main" branch
   push:
     branches: [ "main" ]
 
@@ -21,18 +21,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      # Stops the discord-bot.py process
       - name: Stop Discord bot
         if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
           Get-ScheduledTask "PythonBot1" | Stop-ScheduledTask
 
-      # Copy the Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
+      # Copies the Repository\Scripts folder to C:\Bots\Bot_1\Scripts on the Windows server
       - name: Copy Scripts folder
         if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
           Copy-Item -Path ${{ github.workspace }}/Scripts -Destination C:\Bots\Bot_1 -Recurse -Force
 
-      # Start the discord-bot.py process (& makes it run in the background)
+      # Starts the discord-bot.py process
       - name: Start Discord bot
         if: ${{ contains(github.event.head_commit.modified, 'Scripts/') }}
         run: |
