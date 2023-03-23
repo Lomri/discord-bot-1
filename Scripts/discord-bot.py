@@ -47,6 +47,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 command_dictionary = asyncio.run(reloadCommandList())
+admin_id_list = get_admin_ids()
 
 client = MyClient(intents=intents)
 client.run(TOKEN)
