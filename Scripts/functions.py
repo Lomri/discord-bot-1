@@ -18,6 +18,7 @@ async def printText(*arguments):
   Output:
   Sends the text as a message
   """
+
   if(len(arguments) > 1):
     channel, arg_list = arguments
 
@@ -44,6 +45,7 @@ async def delayedPrint(*arguments):
   Output:
   Send text as message after delay in seconds.
   """
+
   print(arguments)
   if(len(arguments) > 1):
     channel, arg_list = arguments
@@ -81,6 +83,7 @@ def list_find_first_string(arguments: list):
   str: string within quotes
   list: leftovers as a list
   """
+
   if(arguments):
     arguments_as_string = ""
     arguments_as_string = " ".join(arguments)
@@ -98,6 +101,16 @@ def list_find_first_string(arguments: list):
       return found_text, remaining_list
   
 async def reloadCommandList(*arguments):
+  """
+  Reloads command list from .csv file
+
+  Parameters:
+  None
+
+  Output:
+  Message: Showing count of commands
+  """
+  
   global command_dictionary
   try:
     channel = arguments[0]
@@ -118,7 +131,16 @@ async def reloadCommandList(*arguments):
   return command_dictionary
 
 async def helpCommandList(*arguments):
+  """
+  Shows a list of available commands
 
+  Parameters:
+  None
+
+  Output:
+  Message: Available commands
+  """
+  
   channel = arguments[0]
   global command_dictionary
   help_message = "Available commands: "
