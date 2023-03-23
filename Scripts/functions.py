@@ -119,9 +119,6 @@ async def reloadCommandList(*arguments):
   return command_dictionary
 
 async def helpCommandList(*arguments):
-
-
-
   channel = arguments[0]
   global command_dictionary
   help_message = "Available commands: "
@@ -139,7 +136,9 @@ async def helpCommandList(*arguments):
 
 
 def get_admin_ids(admin_file):
+    
     admin_ids = []
+
     with open(admin_file, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:

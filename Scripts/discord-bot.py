@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 import discord
 from functions import *
-#from functions import command_dictionary
 
 load_dotenv()
 
