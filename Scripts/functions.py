@@ -3,6 +3,7 @@ import asyncio
 import csv
 
 command_file = 'command_list.csv'
+admin_file = 'admins_list.csv'
 command_dictionary = {}
 
 
@@ -140,20 +141,38 @@ async def helpCommandList(*arguments):
   Output:
   Message: Available commands
   """
-  
   channel = arguments[0]
   global command_dictionary
   help_message = "Available commands: "
 
   print(f"help: {command_dictionary}")
-
+  
   for key in command_dictionary:
     help_message += "'" + key + "'"
     help_message += ", "
-    
+
   help_message = help_message[:-2]
 
   await channel.send(help_message)
+
+def get_admin_ids(admin_file):
+    """
+    Gets admins from CSV file and returns a list of admin id's
+    Parameters:
+    none
+    Return:
+    list: list of admin id's
+    """
+    admin_ids = []
+
+    with open(admin_file, mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            admin_ids.append(row['discord_id'])
+    
+    print("Loaded ", len(admin_ids), " from ", admin_file)
+
+    return admin_ids
 
 async def messageReaction(*arguments):
   channel = arguments[0]
@@ -162,3 +181,4 @@ async def messageReaction(*arguments):
   response_data = await client.wait_for('reaction_add')
   user = response_data[1]
   await channel.send(f'Hello {user.name}!')
+

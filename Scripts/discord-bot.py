@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 import discord
 from functions import *
-#from functions import command_dictionary
 
 load_dotenv()
 
@@ -47,6 +46,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 command_dictionary = asyncio.run(reloadCommandList())
+admin_id_list = get_admin_ids()
 
 client = MyClient(intents=intents)
 client.run(TOKEN)
