@@ -18,7 +18,7 @@ async def printText(*arguments):
   Output:
   Sends the text as a message
   """
-  
+
   if(len(arguments) > 1):
     channel, arg_list = arguments
 
@@ -110,7 +110,7 @@ async def reloadCommandList(*arguments):
   Output:
   Message: Showing count of commands
   """
-
+  
   global command_dictionary
   try:
     channel = arguments[0]
@@ -138,7 +138,7 @@ async def helpCommandList(*arguments):
   Output:
   Message: Available commands
   """
-
+  
   channel = arguments[0]
   global command_dictionary
   help_message = "Available commands: "
