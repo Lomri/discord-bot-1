@@ -7,7 +7,7 @@ admin_file = 'admins_list.csv'
 command_dictionary = {}
 
 
-async def printText(*arguments):
+async def printText(arguments):
   """
   Prints everything after the command
 
@@ -20,8 +20,8 @@ async def printText(*arguments):
   Sends the text as a message
   """
 
-  if(len(arguments) > 1):
-    channel, arg_list = arguments
+  channel = arguments.channel
+  arg_list = arguments.arguments
 
   arguments_as_string = ""
   for item in arg_list:
@@ -32,7 +32,7 @@ async def printText(*arguments):
   await channel.send(arguments_as_string)
   return True
 
-async def delayedPrint(*arguments):
+async def delayedPrint(arguments):
   """
   Prints text after delay in same message channel.
 
@@ -47,9 +47,8 @@ async def delayedPrint(*arguments):
   Send text as message after delay in seconds.
   """
 
-  print(arguments)
-  if(len(arguments) > 1):
-    channel, arg_list = arguments
+  channel = arguments.channel
+  arg_list = arguments.arguments
   if(len(arg_list) > 1):
     print(arg_list)
     quotes_found = 0
@@ -67,7 +66,6 @@ async def delayedPrint(*arguments):
     await channel.send(text)
     return True
   elif(channel):
-    channel = arguments[0]
     await channel.send(f"Wrong amount of arguments! 2 expected. Found: {len(arguments)}")
   else:
     print("ValueError")
@@ -101,7 +99,7 @@ def list_find_first_string(arguments: list):
   else:
       return found_text, remaining_list
   
-async def reloadCommandList(*arguments):
+async def reloadCommandList(arguments):
   """
   Reloads command list from .csv file
 
@@ -112,11 +110,7 @@ async def reloadCommandList(*arguments):
   Message: Showing count of commands
   """
   
-  global command_dictionary
-  try:
-    channel = arguments[0]
-  except:
-    channel = None
+  channel = arguments.channel
 
   with open(command_file, 'r', newline='') as file:
     reader = csv.DictReader(file)
@@ -131,7 +125,7 @@ async def reloadCommandList(*arguments):
 
   return command_dictionary
 
-async def helpCommandList(*arguments):
+async def helpCommandList(arguments):
   """
   Shows a list of available commands
 
@@ -141,7 +135,8 @@ async def helpCommandList(*arguments):
   Output:
   Message: Available commands
   """
-  channel = arguments[0]
+
+  channel = arguments.channel
   global command_dictionary
   help_message = "Available commands: "
 
@@ -155,7 +150,7 @@ async def helpCommandList(*arguments):
 
   await channel.send(help_message)
 
-def get_admin_ids(admin_file):
+def get_admin_ids():
     """
     Gets admins from CSV file and returns a list of admin id's
     Parameters:
@@ -163,6 +158,7 @@ def get_admin_ids(admin_file):
     Return:
     list: list of admin id's
     """
+    
     admin_ids = []
 
     with open(admin_file, mode='r') as csv_file:
@@ -174,9 +170,17 @@ def get_admin_ids(admin_file):
 
     return admin_ids
 
-async def messageReaction(*arguments):
-  channel = arguments[0]
-  client = arguments[1]
+async def messageReaction(arguments):
+  """
+  Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
+  Parameters:
+  none
+  Return:
+  Message: Message that triggers on react
+  """
+
+  channel = arguments.channel
+  client = arguments.client
   await channel.send('Say hello!')
   response_data = await client.wait_for('reaction_add')
   user = response_data[1]
