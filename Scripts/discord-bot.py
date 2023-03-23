@@ -41,7 +41,7 @@ class MyClient(discord.Client):
                arguments = "No arguments"
 
             func_name = command_dictionary[command]
-            function_worked = await globals()[func_name](selected_channel, arguments)
+            function_worked = await globals()[func_name](selected_channel, self, arguments)
 
 intents = discord.Intents.default()
 intents.message_content = True

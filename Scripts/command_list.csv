@@ -3,3 +3,4 @@ reload,reloadCommandList
 help,helpCommandList
 print,printText
 dprint,delayedPrint
+reaction,messageReaction

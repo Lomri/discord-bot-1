@@ -132,3 +132,11 @@ async def helpCommandList(*arguments):
   help_message = help_message[:-2]
 
   await channel.send(help_message)
+
+async def messageReaction(*arguments):
+  channel = arguments[0]
+  client = arguments[1]
+  await channel.send('Say hello!')
+  response_data = await client.wait_for('reaction_add')
+  user = response_data[1]
+  await channel.send(f'Hello {user.name}!')
