@@ -1,6 +1,7 @@
 import re
 import asyncio
 import csv
+import discord
 
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
@@ -12,9 +13,7 @@ async def printText(arguments):
   Prints everything after the command
 
   Parameters:
-  tuple:
-    channel: channel to send message in
-    list: list for printing
+  str: string to print
 
   Output:
   Sends the text as a message
@@ -37,11 +36,8 @@ async def delayedPrint(arguments):
   Prints text after delay in same message channel.
 
   Parameters:
-  tuple:
-    channel: channel to send message in
-    list: arguments after initial command
-      text (string): Text.
-      delay (float): Delay.
+  str: string requires quotes
+  float: delay in seconds
 
   Output:
   Send text as message after delay in seconds.
@@ -158,7 +154,7 @@ def get_admin_ids():
     Return:
     list: list of admin id's
     """
-    
+
     admin_ids = []
 
     with open(admin_file, mode='r') as csv_file:
@@ -174,8 +170,8 @@ async def messageReaction(arguments):
   """
   Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
   Parameters:
-  none
-  Return:
+  None
+  Output:
   Message: Message that triggers on react
   """
 
@@ -186,3 +182,25 @@ async def messageReaction(arguments):
   user = response_data[1]
   await channel.send(f'Hello {user.name}!')
 
+async def changeStatus(arguments):
+  """
+  Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
+  Parameters:
+  str: new_status
+  str: status_message
+  Return:
+  Message: Message that triggers on react
+  """
+
+  channel = arguments.channel
+  client = arguments.client
+  arg_list = arguments.arguments
+  new_status = arg_list[0]
+  status_message = " ".join(arg_list[1:])
+  new_activity = discord.Game(name=status_message)
+  print(new_status)
+  print(status_message)
+  if(new_status == "idle"):
+    await client.change_presence(status=discord.Status.idle, activity=new_activity)
+  elif(new_status == "online"):
+    await client.change_presence(status=discord.Status.online, activity=new_activity)
