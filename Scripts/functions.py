@@ -121,11 +121,13 @@ async def reloadCommandList(*arguments):
     reader = csv.DictReader(file)
     command_dictionary = {row['command']: row['function'] for row in reader}
 
-  reload_message = f"{len(command_dictionary)} commands"
+  reload_message = f"Reloaded {len(command_dictionary)} commands"
 
   if(channel):
     await channel.send(reload_message)
+
   print(f"reload: {command_dictionary}")
+
   return command_dictionary
 
 async def helpCommandList(*arguments):
@@ -142,10 +144,21 @@ async def helpCommandList(*arguments):
   channel = arguments[0]
   global command_dictionary
   help_message = "Available commands: "
+
   print(f"help: {command_dictionary}")
+
   for key in command_dictionary:
     help_message += "'" + key + "'"
     help_message += ", "
+    
   help_message = help_message[:-2]
 
   await channel.send(help_message)
+
+async def messageReaction(*arguments):
+  channel = arguments[0]
+  client = arguments[1]
+  await channel.send('Say hello!')
+  response_data = await client.wait_for('reaction_add')
+  user = response_data[1]
+  await channel.send(f'Hello {user.name}!')
