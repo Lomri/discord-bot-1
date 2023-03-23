@@ -136,7 +136,13 @@ async def helpCommandList(*arguments):
 
 
 def get_admin_ids(admin_file):
-    
+    """
+    Gets admins from CSV file and returns a list of admin id's
+    Parameters:
+    none
+    Return:
+    list: list of admin id's
+    """
     admin_ids = []
 
     with open(admin_file, mode='r') as csv_file:
