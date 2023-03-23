@@ -9,6 +9,12 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 prefix = '!'
 
+class Argument:
+  def __init__(self, client = None, channel = None, arguments = None) -> None:
+    self.client = client
+    self.channel = channel
+    self.arguments = arguments
+
 class MyClient(discord.Client):
   async def on_ready(self):
     print('Logged on as {0}!'.format(self.user))
@@ -40,12 +46,15 @@ class MyClient(discord.Client):
                arguments = "No arguments"
 
             func_name = command_dictionary[command]
-            function_worked = await globals()[func_name](selected_channel, self, arguments)
+
+            function_arguments = Argument(self, selected_channel, arguments)
+            function_worked = await globals()[func_name](function_arguments)
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-command_dictionary = asyncio.run(reloadCommandList())
+function_arguments = Argument()
+command_dictionary = asyncio.run(reloadCommandList(function_arguments))
 admin_id_list = get_admin_ids()
 
 client = MyClient(intents=intents)
