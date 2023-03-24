@@ -170,7 +170,8 @@ Output:
       print(command_dictionary[command])
       match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
       string_literals = f"Command **{command}** documentation:\n```"
-      string_literals += match.group(1)
+      index_of_last_line_break = (match.group(1)).rfind('\n')
+      string_literals += match.group(1)[:index_of_last_line_break]
       string_literals += "```"
       await channel.send(string_literals)
 
