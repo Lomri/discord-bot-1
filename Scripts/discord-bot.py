@@ -10,9 +10,10 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 prefix = '!'
 
 class Argument:
-  def __init__(self, client = None, channel = None, arguments = None) -> None:
+  def __init__(self, client = None, channel = None, message = None, arguments = None) -> None:
     self.client = client
     self.channel = channel
+    self.message = message
     self.arguments = arguments
 
 class MyClient(discord.Client):
@@ -47,7 +48,7 @@ class MyClient(discord.Client):
 
             func_name = command_dictionary[command]
 
-            function_arguments = Argument(self, selected_channel, arguments)
+            function_arguments = Argument(self, selected_channel, message, arguments)
             function_worked = await globals()[func_name](function_arguments)
 
 intents = discord.Intents.default()
