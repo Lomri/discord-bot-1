@@ -108,6 +108,7 @@ async def reloadCommandList(arguments):
   """
   
   channel = arguments.channel
+  global command_dictionary
 
   with open(command_file, 'r', newline='') as file:
     reader = csv.DictReader(file)
@@ -140,7 +141,7 @@ async def helpCommandList(arguments):
   print(f"help: {command_dictionary}")
   
   for key in command_dictionary:
-    help_message += "'" + key + "'"
+    help_message += "**" + key + "**"
     help_message += ", "
 
   help_message = help_message[:-2]
