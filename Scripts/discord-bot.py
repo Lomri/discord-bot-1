@@ -27,7 +27,6 @@ class MyClient(discord.Client):
         for channel in channel_list:
           if(channel.name == settings_list['logchannel']):
             await channel.send("I HAVE RETURNED! As in I am available for commands!")
-            #await channel.send("I HAVE RETURNED! As in I am available for commands! https://giphy.com/gifs/token-Lopx9eUi34rbq")
     else:
       print("Logs are turned off")
 
