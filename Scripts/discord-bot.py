@@ -45,7 +45,7 @@ class MyClient(discord.Client):
                arguments = arguments[1:]
 
             else:
-               arguments = "No arguments"
+               arguments = None
 
             func_name = command_dictionary[command]
 

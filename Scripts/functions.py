@@ -2,6 +2,8 @@ import re
 import asyncio
 import csv
 import discord
+from inspect import getmembers, getsource, isfunction
+import sys
 
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
@@ -11,12 +13,12 @@ command_dictionary = {}
 
 async def printText(arguments):
   """
-  Prints everything after the command
+Prints everything after the command
 
-  Parameters:
+Parameters:
   str: string to print
 
-  Output:
+Output:
   Sends the text as a message
   """
 
@@ -32,15 +34,16 @@ async def printText(arguments):
   await channel.send(arguments_as_string)
   return True
 
+
 async def delayedPrint(arguments):
   """
-  Prints text after delay in same message channel.
+Prints text after delay in same message channel.
 
-  Parameters:
+Parameters:
   str: string requires quotes
   float: delay in seconds
 
-  Output:
+Output:
   Send text as message after delay in seconds.
   """
 
@@ -67,15 +70,16 @@ async def delayedPrint(arguments):
   else:
     print("ValueError")
 
+
 def list_find_first_string(arguments: list):
   """
-  Accepts a list and builts it into a string, finds first text within quotes and returns that with remainings as list.
+Accepts a list and builts it into a string, finds first text within quotes and returns that with remainings as list.
 
-  Parameters:
+Parameters:
   text (string): Text.
   delay (float): Delay.
 
-  Return:
+Return:
   str: string within quotes
   list: leftovers as a list
   """
@@ -95,15 +99,16 @@ def list_find_first_string(arguments: list):
       return found_text, remaining_list
   else:
       return found_text, remaining_list
-  
+
+
 async def reloadCommandList(arguments):
   """
-  Reloads command list from .csv file
+Reloads command list from .csv file
 
-  Parameters:
+Parameters:
   None
 
-  Output:
+Output:
   Message: Showing count of commands
   """
   
@@ -123,38 +128,60 @@ async def reloadCommandList(arguments):
 
   return command_dictionary
 
+
 async def helpCommandList(arguments):
   """
-  Shows a list of available commands
+Shows a list of available commands
 
-  Parameters:
+Parameters:
   None
 
-  Output:
+Output:
   Message: Available commands
   """
 
   channel = arguments.channel
+  arg_list = arguments.arguments
+
   global command_dictionary
-  help_message = "Available commands: "
 
-  print(f"help: {command_dictionary}")
-  
-  for key in command_dictionary:
-    help_message += "**" + key + "**"
-    help_message += ", "
+  command = arg_list[0]
+  command_found = command in command_dictionary
 
-  help_message = help_message[:-2]
+  if(arg_list == None or not command_found):
+    help_message = "Available commands: "
+    if(not command_found):
+      help_message = f"Command '{command}' was not found\n" + help_message
 
-  await channel.send(help_message)
+    print(f"help: {command_dictionary}")
+    
+    for key in command_dictionary:
+      help_message += "**" + key + "**"
+      help_message += ", "
+
+    help_message = help_message[:-2]
+
+    await channel.send(help_message)
+
+  elif(command_found):
+    if(command in command_dictionary):
+      print(command_dictionary[command])
+      match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
+      string_literals = f"Command **{command}** documentation:\n```"
+      string_literals += match.group(1)
+      string_literals += "```"
+      await channel.send(string_literals)
+
 
 def get_admin_ids():
     """
-    Gets admins from CSV file and returns a list of admin id's
-    Parameters:
-    none
-    Return:
-    list: list of admin id's
+Gets admins from CSV file and returns a list of admin id's
+
+Parameters:
+  none
+
+Return:
+  list: list of admin id's
     """
 
     admin_ids = []
@@ -168,12 +195,15 @@ def get_admin_ids():
 
     return admin_ids
 
+
 async def messageReaction(arguments):
   """
-  Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
-  Parameters:
+Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
+
+Parameters:
   None
-  Output:
+
+Output:
   Message: Message that triggers on react
   """
 
@@ -184,13 +214,16 @@ async def messageReaction(arguments):
   user = response_data[1]
   await channel.send(f'Hello {user.name}!')
 
+
 async def changeStatus(arguments):
   """
-  Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
-  Parameters:
+Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
+
+Parameters:
   str: new_status
   str: status_message
-  Return:
+
+Return:
   Message: Message that triggers on react
   """
 
@@ -209,10 +242,12 @@ async def changeStatus(arguments):
 
 async def signUp(arguments):
   """
-  Writes your name and id to signup_list.csv.
-  Parameters:
+Writes your name and id to signup_list.csv.
+
+Parameters:
   None
-  Output:
+
+Output:
   Message: Message that tells you if you are signed up already or sign up worked.
   """
 
@@ -238,10 +273,12 @@ async def signUp(arguments):
   
 async def removeSignUp(arguments):
   """
-  Removes your name and id from signup_list.csv.
-  Parameters:
+Removes your name and id from signup_list.csv.
+
+Parameters:
   None
-  Output:
+
+Output:
   Message: Message that tells you if your signup was removed or you were not in the list.
   """
 
@@ -273,12 +310,14 @@ async def removeSignUp(arguments):
 
 async def removeReaction(arguments):
   """
-  Creates a message that removes reactions.
-  Parameters:
+Creates a message that removes reactions.
+
+Parameters:
   None
-  Output:
+
+Output:
   Message: Message that will have reactions removed.
-  """
+ """
 
   channel = arguments.channel
   client = arguments.client
