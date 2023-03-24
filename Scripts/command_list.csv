@@ -5,3 +5,5 @@ print,printText
 dprint,delayedPrint
 reaction,messageReaction
 changestatus,changeStatus
+signup,signUp
+removesignup,removeSignUp

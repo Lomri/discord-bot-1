@@ -5,6 +5,7 @@ import discord
 
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
+signup_file = 'signup_list.csv'
 command_dictionary = {}
 
 
@@ -204,3 +205,72 @@ async def changeStatus(arguments):
     await client.change_presence(status=discord.Status.idle, activity=new_activity)
   elif(new_status == "online"):
     await client.change_presence(status=discord.Status.online, activity=new_activity)
+
+
+async def signUp(arguments):
+  """
+  Writes your name and id to signup_list.csv.
+  Parameters:
+  None
+  Output:
+  Message: Message that tells you if you are signed up already or sign up worked.
+  """
+
+  channel = arguments.channel
+  client = arguments.client
+  message = arguments.message
+  arg_list = arguments.arguments
+  
+  current_list = {}
+
+  username = message.author.name
+  user_id = message.author.id
+
+  with open(signup_file, 'r', newline='') as csv_file:
+    reader = csv.DictReader(csv_file)
+    current_list = {row['discord_id']: row['name'] for row in reader}
+
+  if(str(user_id) not in current_list):
+    with open(signup_file, 'a', newline='') as csv_file:
+      csv_file.write('\n' + str(user_id) + ',' + username)
+    await channel.send('Signed up!')
+  else:
+    await channel.send('You are already signed up!')
+
+  
+async def removeSignUp(arguments):
+  """
+  Removes your name and id from signup_list.csv.
+  Parameters:
+  None
+  Output:
+  Message: Message that tells you if your signup was removed or you weren't there.
+  """
+
+  channel = arguments.channel
+  client = arguments.client
+  message = arguments.message
+  arg_list = arguments.arguments
+  
+  current_list = {}
+
+  header = 'discord_id,name'
+  username = message.author.name
+  user_id = message.author.id
+
+  was_signed_up = False
+
+  with open(signup_file, 'r', newline='') as csv_file:
+    reader = csv.DictReader(csv_file)
+    current_list = {row['discord_id']: row['name'] for row in reader}
+
+  with open(signup_file, 'w', newline='') as csv_file:
+    csv_file.write(header)
+    for key in current_list:
+      if(key == str(user_id) and not was_signed_up):
+        was_signed_up = True
+        await channel.send('Signup removed!')
+      else:
+        csv_file.write('\n' + key + ',' + current_list[key])
+    if(not was_signed_up):
+      await channel.send('You were not signed up.')
