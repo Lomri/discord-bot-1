@@ -8,6 +8,8 @@ import sys
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
 signup_file = 'signup_list.csv'
+settings_file = 'settings_list.csv'
+
 command_dictionary = {}
 
 
@@ -326,3 +328,27 @@ Output:
   async def on_reaction_add(reaction, user):
     if(reaction.message.id == msg_remove_reactions.id):
       await msg_remove_reactions.remove_reaction(reaction, user)
+
+
+def load_settings():
+  """
+Loads settings for bot behavior
+
+Parameters:
+  none
+
+Return:
+  list: list of settings
+  """
+
+  settings = {}
+
+  with open(settings_file, mode='r') as csv_file:
+      csv_reader = csv.DictReader(csv_file)
+      for row in csv_reader:
+          settings[row['setting']] = row['value']
+  
+  print("Settings loaded!")
+  print(settings)
+
+  return settings
