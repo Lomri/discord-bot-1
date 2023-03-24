@@ -19,6 +19,17 @@ class Argument:
 class MyClient(discord.Client):
   async def on_ready(self):
     print('Logged on as {0}!'.format(self.user))
+    global settings_list
+    if(settings_list['log'] == "True"):
+      guild_list = [guild async for guild in client.fetch_guilds()]
+      for guild in guild_list:
+        channel_list = await guild.fetch_channels()
+        for channel in channel_list:
+          if(channel.name == settings_list['logchannel']):
+            await channel.send("I HAVE RETURNED! As in I am available for commands!")
+            #await channel.send("I HAVE RETURNED! As in I am available for commands! https://giphy.com/gifs/token-Lopx9eUi34rbq")
+    else:
+      print("Logs are turned off")
 
   async def on_message(self, message):
     global command_dictionary
@@ -58,6 +69,7 @@ intents.message_content = True
 function_arguments = Argument()
 command_dictionary = asyncio.run(reloadCommandList(function_arguments))
 admin_id_list = get_admin_ids()
+settings_list = load_settings()
 
 client = MyClient(intents=intents)
 client.run(TOKEN)
