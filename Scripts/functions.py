@@ -193,7 +193,6 @@ async def changeStatus(arguments):
   Message: Message that triggers on react
   """
 
-  channel = arguments.channel
   client = arguments.client
   arg_list = arguments.arguments
   new_status = arg_list[0]
@@ -217,9 +216,7 @@ async def signUp(arguments):
   """
 
   channel = arguments.channel
-  client = arguments.client
   message = arguments.message
-  arg_list = arguments.arguments
   
   current_list = {}
 
@@ -244,18 +241,15 @@ async def removeSignUp(arguments):
   Parameters:
   None
   Output:
-  Message: Message that tells you if your signup was removed or you weren't there.
+  Message: Message that tells you if your signup was removed or you were not in the list.
   """
 
   channel = arguments.channel
-  client = arguments.client
   message = arguments.message
-  arg_list = arguments.arguments
   
   current_list = {}
 
   header = 'discord_id,name'
-  username = message.author.name
   user_id = message.author.id
 
   was_signed_up = False
