@@ -7,3 +7,4 @@ reaction,messageReaction
 changestatus,changeStatus
 signup,signUp
 removesignup,removeSignUp
+removereaction,removeReaction

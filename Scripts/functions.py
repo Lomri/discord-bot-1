@@ -268,3 +268,21 @@ async def removeSignUp(arguments):
         csv_file.write('\n' + key + ',' + current_list[key])
     if(not was_signed_up):
       await channel.send('You were not signed up.')
+
+
+async def removeReaction(arguments):
+  """
+  Creates a message that removes reactions.
+  Parameters:
+  None
+  Output:
+  Message: Message that will have reactions removed.
+  """
+
+  channel = arguments.channel
+  client = arguments.client
+  msg_remove_reactions = (await channel.send('If you react to this message, I will remove it!'))
+  @client.event
+  async def on_reaction_add(reaction, user):
+    if(reaction.message.id == msg_remove_reactions.id):
+      await msg_remove_reactions.remove_reaction(reaction, user)
