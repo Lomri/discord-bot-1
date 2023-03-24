@@ -21,8 +21,7 @@ Parameters:
   str: string to print
 
 Output:
-  Sends the text as a message
-  """
+  Message: Sends the text as a message"""
 
   channel = arguments.channel
   arg_list = arguments.arguments
@@ -46,8 +45,7 @@ Parameters:
   float: delay in seconds
 
 Output:
-  Send text as message after delay in seconds.
-  """
+  Message: Send text as message after delay in seconds"""
 
   channel = arguments.channel
   arg_list = arguments.arguments
@@ -83,8 +81,7 @@ Parameters:
 
 Return:
   str: string within quotes
-  list: leftovers as a list
-  """
+  list: leftovers as a list"""
 
   if(arguments):
     arguments_as_string = ""
@@ -111,8 +108,7 @@ Parameters:
   None
 
 Output:
-  Message: Showing count of commands
-  """
+  Message: Showing count of commands"""
   
   channel = arguments.channel
   global command_dictionary
@@ -139,8 +135,7 @@ Parameters:
   None
 
 Output:
-  Message: Available commands
-  """
+  Message: Available commands"""
 
   channel = arguments.channel
   arg_list = arguments.arguments
@@ -170,8 +165,7 @@ Output:
       print(command_dictionary[command])
       match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
       string_literals = f"Command **{command}** documentation:\n```"
-      index_of_last_line_break = (match.group(1)).rfind('\n')
-      string_literals += match.group(1)[:index_of_last_line_break]
+      string_literals += match.group(1)
       string_literals += "```"
       await channel.send(string_literals)
 
@@ -184,8 +178,7 @@ Parameters:
   none
 
 Return:
-  list: list of admin id's
-    """
+  list: list of admin id's"""
 
     admin_ids = []
 
@@ -207,8 +200,7 @@ Parameters:
   None
 
 Output:
-  Message: Message that triggers on react
-  """
+  Message: Message that triggers on react"""
 
   channel = arguments.channel
   client = arguments.client
@@ -227,8 +219,7 @@ Parameters:
   str: status_message
 
 Return:
-  Message: Message that triggers on react
-  """
+  Message: Message that triggers on react"""
 
   client = arguments.client
   arg_list = arguments.arguments
@@ -251,8 +242,7 @@ Parameters:
   None
 
 Output:
-  Message: Message that tells you if you are signed up already or sign up worked.
-  """
+  Message: Message that tells you if you are signed up already or sign up worked"""
 
   channel = arguments.channel
   message = arguments.message
@@ -282,8 +272,7 @@ Parameters:
   None
 
 Output:
-  Message: Message that tells you if your signup was removed or you were not in the list.
-  """
+  Message: Message that tells you if your signup was removed or you were not in the list"""
 
   channel = arguments.channel
   message = arguments.message
@@ -319,8 +308,7 @@ Parameters:
   None
 
 Output:
-  Message: Message that will have reactions removed.
- """
+  Message: Message that will have reactions removed"""
 
   channel = arguments.channel
   client = arguments.client
@@ -339,8 +327,7 @@ Parameters:
   none
 
 Return:
-  list: list of settings
-  """
+  list: list of settings"""
 
   settings = {}
 
