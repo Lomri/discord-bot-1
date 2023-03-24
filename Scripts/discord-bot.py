@@ -34,7 +34,8 @@ class MyClient(discord.Client):
         selected_channel = message.channel
 
         if only_key_found and message.content == prefix + "reload":
-          command_dictionary = await reloadCommandList(selected_channel)
+          function_arguments = Argument(self, selected_channel, message)
+          command_dictionary = await reloadCommandList(function_arguments)
           break
 
         if key_with_space_found or only_key_found:
