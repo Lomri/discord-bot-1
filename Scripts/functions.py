@@ -369,7 +369,7 @@ Output:
   
   current_list = {}
 
-  header = 'setting,value,valuetype'
+  header = 'setting,description,value,valuetype'
 
   if(setting_name in setting_dictionary):
     
@@ -378,16 +378,17 @@ Output:
 
     with open(settings_file, 'r', newline='') as csv_file:
       csv_reader = csv.DictReader(csv_file)
-      current_list = {row['setting']: {'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
+      current_list = {row['setting']: {'description':row['description'], 'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
 
     with open(settings_file, 'w', newline='') as csv_file:
       csv_file.write(header)
       for key in current_list:
-        if(key == setting_name and is_of_type(current_list[key]['valuetype'], setting_value)):
-          csv_file.write('\n' + key + ',' + setting_value + ',' + current_list[key]['valuetype'])
+        setting = key
+        if(setting == setting_name and is_of_type(current_list[setting]['valuetype'], setting_value)):
+          csv_file.write('\n' + setting + ',' + current_list[setting]['description'] + ',' + setting_value + ',' + current_list[setting]['valuetype'])
           await channel.send(f"Setting: **{setting_name}** changed from **{current_list[setting_name]['value']}** to **{setting_value}**")
         else:
-          csv_file.write('\n' + key + ',' + current_list[key]['value'] + ',' + current_list[key]['valuetype'])
+          csv_file.write('\n' + setting + ',' + current_list[setting]['description'] + ',' + current_list[setting]['value'] + ',' + current_list[setting]['valuetype'])
   else:
     await channel.send('Setting not found')
 
