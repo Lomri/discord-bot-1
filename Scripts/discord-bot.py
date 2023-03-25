@@ -20,12 +20,12 @@ class MyClient(discord.Client):
   async def on_ready(self):
     print('Logged on as {0}!'.format(self.user))
     global settings_list
-    if(settings_list['log'] == "True"):
+    if(settings_list['log']['value'] == "True"):
       guild_list = [guild async for guild in client.fetch_guilds()]
       for guild in guild_list:
         channel_list = await guild.fetch_channels()
         for channel in channel_list:
-          if(channel.name == settings_list['logchannel']):
+          if(channel.name == settings_list['logchannel']['value']):
             await channel.send("I HAVE RETURNED! As in I am available for commands!")
     else:
       print("Logs are turned off")
