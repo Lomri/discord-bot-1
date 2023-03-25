@@ -19,14 +19,24 @@ class Argument:
 class MyClient(discord.Client):
   async def on_ready(self):
     print('Logged on as {0}!'.format(self.user))
+
     global settings_list
+
     if(settings_list['log']['value'] == "True"):
       guild_list = [guild async for guild in client.fetch_guilds()]
+
       for guild in guild_list:
         channel_list = await guild.fetch_channels()
+
         for channel in channel_list:
           if(channel.name == settings_list['logchannel']['value']):
-            await channel.send("I HAVE RETURNED! As in I am available for commands!")
+            
+            try:
+              await channel.send("I HAVE RETURNED! As in I am available for commands!")
+
+            except discord.Forbidden:
+              print(f"No permissions to send in channel {channel.name}.")
+
     else:
       print("Logs are turned off")
 
