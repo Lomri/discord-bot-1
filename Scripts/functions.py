@@ -368,8 +368,7 @@ Output:
   header = 'setting,value,valuetype'
 
   if(setting_name in setting_dictionary):
-    await channel.send('Setting found')
-    print(is_of_type(setting_dictionary[setting_name]['valuetype'], setting_value))
+    
     if(not is_of_type(setting_dictionary[setting_name]['valuetype'], setting_value)):
       await channel.send('Setting is not correct type')
 
@@ -382,6 +381,7 @@ Output:
       for key in current_list:
         if(key == setting_name and is_of_type(current_list[key]['valuetype'], setting_value)):
           csv_file.write('\n' + key + ',' + setting_value + ',' + current_list[key]['valuetype'])
+          await channel.send(f"Setting: **{setting_name}** changed from **{current_list[setting_name]['value']}** to **{setting_value}**")
         else:
           csv_file.write('\n' + key + ',' + current_list[key]['value'] + ',' + current_list[key]['valuetype'])
   else:
@@ -398,3 +398,4 @@ def is_of_type(valuetype, string):
       return False
     else:
       return True
+  return True
