@@ -11,6 +11,7 @@ signup_file = 'signup_list.csv'
 settings_file = 'settings_list.csv'
 
 command_dictionary = {}
+setting_dictionary = {}
 
 
 async def printText(arguments):
@@ -329,14 +330,71 @@ Parameters:
 Return:
   list: list of settings"""
 
-  settings = {}
+  global setting_dictionary
 
   with open(settings_file, mode='r') as csv_file:
       csv_reader = csv.DictReader(csv_file)
-      for row in csv_reader:
-          settings[row['setting']] = row['value']
+      setting_dictionary = {row['setting']: {'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
   
   print("Settings loaded!")
-  print(settings)
+  print(setting_dictionary)
 
-  return settings
+  return setting_dictionary
+
+
+async def changeSetting(arguments):
+  """
+Removes your name and id from signup_list.csv.
+
+Parameters:
+  None
+
+Output:
+  Message: Message that tells you if your signup was removed or you were not in the list"""
+
+  channel = arguments.channel
+  arg_list = arguments.arguments
+
+  if(len(arg_list) < 2):
+    await channel.send("Need arguments: setting, value")
+    return
+
+  setting_name = arg_list[0]
+  setting_value = arg_list[1]
+
+  
+  current_list = {}
+
+  header = 'setting,value,valuetype'
+
+  if(setting_name in setting_dictionary):
+    await channel.send('Setting found')
+    print(is_of_type(setting_dictionary[setting_name]['valuetype'], setting_value))
+    if(not is_of_type(setting_dictionary[setting_name]['valuetype'], setting_value)):
+      await channel.send('Setting is not correct type')
+
+    with open(settings_file, 'r', newline='') as csv_file:
+      csv_reader = csv.DictReader(csv_file)
+      current_list = {row['setting']: {'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
+
+    with open(settings_file, 'w', newline='') as csv_file:
+      csv_file.write(header)
+      for key in current_list:
+        if(key == setting_name and is_of_type(current_list[key]['valuetype'], setting_value)):
+          csv_file.write('\n' + key + ',' + setting_value + ',' + current_list[key]['valuetype'])
+        else:
+          csv_file.write('\n' + key + ',' + current_list[key]['value'] + ',' + current_list[key]['valuetype'])
+  else:
+    await channel.send('Setting not found')
+
+def is_of_type(valuetype, string):
+  if(valuetype == "bool"):
+    if(string != 'True' and string != 'False'):
+      return False
+    else:
+      return True
+  if(valuetype == "int"):
+    if(string.ascii_letters in string or string.punctuation in string):
+      return False
+    else:
+      return True
