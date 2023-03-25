@@ -213,14 +213,14 @@ Output:
 
 async def changeStatus(arguments):
   """
-Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
+Changes bot status to idle or online and adds text to "Playing ..." status.
 
 Parameters:
-  str: new_status
-  str: status_message
+  str: idle or online
+  str: status message
 
-Return:
-  Message: Message that triggers on react"""
+Output:
+  Bot status: Bot status changes based on parameters"""
 
   client = arguments.client
   arg_list = arguments.arguments
@@ -344,13 +344,14 @@ Return:
 
 async def changeSetting(arguments):
   """
-Removes your name and id from signup_list.csv.
+Takes settings name and value and changes it, if it exists.
 
 Parameters:
-  None
+  str: setting name
+  str: setting value
 
 Output:
-  Message: Message that tells you if your signup was removed or you were not in the list"""
+  Message: Message that says what was changed to and from"""
 
   channel = arguments.channel
   arg_list = arguments.arguments
@@ -388,6 +389,8 @@ Output:
     await channel.send('Setting not found')
 
 def is_of_type(valuetype, string):
+  """
+  Checks if string can be considered a valuetype of bool or int"""
   if(valuetype == "bool"):
     if(string != 'True' and string != 'False'):
       return False
