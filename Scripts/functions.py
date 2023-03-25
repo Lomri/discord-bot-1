@@ -130,25 +130,30 @@ Output:
 
 async def helpCommandList(arguments):
   """
-Shows a list of available commands
+Shows a list of available commands or description of a command
 
 Parameters:
-  None
+  optional: string
 
 Output:
-  Message: Available commands"""
+  Message: Available commands or help for a command"""
 
   channel = arguments.channel
   arg_list = arguments.arguments
 
   global command_dictionary
 
-  command = arg_list[0]
-  command_found = command in command_dictionary
+  command = None
+  command_found = False
+
+  if(arg_list != None):
+    command = arg_list[0]
+    command_found = command in command_dictionary
+
 
   if(arg_list == None or not command_found):
     help_message = "Available commands: "
-    if(not command_found):
+    if(not command_found and arg_list != None):
       help_message = f"Command '{command}' was not found\n" + help_message
 
     print(f"help: {command_dictionary}")
@@ -162,13 +167,12 @@ Output:
     await channel.send(help_message)
 
   elif(command_found):
-    if(command in command_dictionary):
-      print(command_dictionary[command])
-      match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
-      string_literals = f"Command **{command}** documentation:\n```"
-      string_literals += match.group(1)
-      string_literals += "```"
-      await channel.send(string_literals)
+    print(command_dictionary[command])
+    match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
+    string_literals = f"Command **{command}** documentation:\n```"
+    string_literals += match.group(1)
+    string_literals += "```"
+    await channel.send(string_literals)
 
 
 def get_admin_ids():
@@ -334,10 +338,9 @@ Return:
 
   with open(settings_file, mode='r') as csv_file:
       csv_reader = csv.DictReader(csv_file)
-      setting_dictionary = {row['setting']: {'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
+      setting_dictionary = {row['setting']: {'description':row['description'], 'value':row['value'], 'valuetype':row['valuetype']} for row in csv_reader}
   
   print("Settings loaded!")
-  print(setting_dictionary)
 
   return setting_dictionary
 
@@ -391,6 +394,7 @@ Output:
 def is_of_type(valuetype, string):
   """
   Checks if string can be considered a valuetype of bool or int"""
+
   if(valuetype == "bool"):
     if(string != 'True' and string != 'False'):
       return False
@@ -402,3 +406,48 @@ def is_of_type(valuetype, string):
     else:
       return True
   return True
+
+
+async def showSettings(arguments):
+  """
+Shows a list of settings or description of a setting
+
+Parameters:
+  optional: string
+
+Output:
+  Message: list of settings or help for a setting"""
+
+  channel = arguments.channel
+  arg_list = arguments.arguments
+
+  global setting_dictionary
+
+  setting_name = None
+  setting_found = False
+
+  if(arg_list != None):
+    setting_name = arg_list[0]
+    setting_found = setting_name in setting_dictionary
+
+
+  if(arg_list == None or not setting_found):
+    settings_message = "Settings: "
+    if(not setting_found and arg_list != None):
+      settings_message = f"Setting '{setting_name}' was not found\n" + settings_message
+    
+    for key in setting_dictionary:
+      settings_message += "**" + key + "**"
+      settings_message += ", "
+
+    settings_message = settings_message[:-2]
+
+    await channel.send(settings_message)
+
+  elif(setting_found):
+    setting_string = f"Setting **{setting_name}** fields:\n"
+    setting_string += "Value: **" + setting_dictionary[setting_name]['value'] + "**"
+    setting_string += ", Type: **" + setting_dictionary[setting_name]['valuetype'] + "**"
+    setting_string += "\nDescription:\n"
+    setting_string += setting_dictionary[setting_name]['description']
+    await channel.send(setting_string)
