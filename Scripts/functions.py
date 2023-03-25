@@ -445,9 +445,10 @@ Output:
     await channel.send(settings_message)
 
   elif(setting_found):
-    setting_string = f"Setting **{setting_name}** fields:\n"
-    setting_string += "Value: **" + setting_dictionary[setting_name]['value'] + "**"
-    setting_string += ", Type: **" + setting_dictionary[setting_name]['valuetype'] + "**"
+    setting_string = f"Setting **{setting_name}** fields:\n```"
+    setting_string += "Type: " + setting_dictionary[setting_name]['valuetype'] + ""
+    setting_string += " | Value: " + setting_dictionary[setting_name]['value'] + ""
     setting_string += "\nDescription:\n"
     setting_string += setting_dictionary[setting_name]['description']
+    setting_string += "```"
     await channel.send(setting_string)
