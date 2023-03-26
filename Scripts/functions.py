@@ -1,9 +1,10 @@
+from discord.ext import commands
 import re
 import asyncio
 import csv
 import discord
-from inspect import getmembers, getsource, isfunction
-import sys
+from inspect import getsource
+import string
 
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
@@ -13,8 +14,17 @@ settings_file = 'settings_list.csv'
 command_dictionary = {}
 setting_dictionary = {}
 
+command_file = 'command_list.csv'
 
-async def printText(arguments):
+command_dictionary = {}
+
+@commands.command()
+async def hello(ctx):
+    await ctx.send('Hello {0.display_name}.'.format(ctx.author))
+
+
+@commands.command(name='print')
+async def printText(ctx, *args):
   """
 Prints everything after the command
 
@@ -24,20 +34,14 @@ Parameters:
 Output:
   Message: Sends the text as a message"""
 
-  channel = arguments.channel
-  arg_list = arguments.arguments
-
-  arguments_as_string = ""
-  for item in arg_list:
-    arguments_as_string += item
-    arguments_as_string += " "
-  arguments_as_string = arguments_as_string[:-1]
+  channel = ctx
+  arguments = ' '.join(args)
   
-  await channel.send(arguments_as_string)
-  return True
+  await channel.send(arguments)
 
 
-async def delayedPrint(arguments):
+@commands.command(name='dprint')
+async def delayedPrint(ctx, *args):
   """
 Prints text after delay in same message channel.
 
@@ -48,28 +52,13 @@ Parameters:
 Output:
   Message: Send text as message after delay in seconds"""
 
-  channel = arguments.channel
-  arg_list = arguments.arguments
-  if(len(arg_list) > 1):
-    print(arg_list)
-    quotes_found = 0
-    for item in arg_list:
-        if('"' in item):
-          quotes_found += 1
-    text, remaining_list = list_find_first_string(arg_list)
-    if(remaining_list[0] == ""):
-        remaining_list = remaining_list[1:]
-    if(len(remaining_list) > 1):
-      await channel.send(f"Wrong amount of arguments! 2 expected. Found: {len(remaining_list) + 1}")
-      return
-    print(f"text: {text} remaining_list: {remaining_list}")
-    await asyncio.sleep(float(remaining_list[0]))
-    await channel.send(text)
-    return True
-  elif(channel):
-    await channel.send(f"Wrong amount of arguments! 2 expected. Found: {len(arguments)}")
-  else:
-    print("ValueError")
+  channel = ctx
+  if(len(args) >= 2):
+    message = args[0]
+    delay = args[1]
+    if(is_of_type('int', delay)):
+      await asyncio.sleep(float(delay))
+      await channel.send(message)
 
 
 def list_find_first_string(arguments: list):
@@ -101,7 +90,8 @@ Return:
       return found_text, remaining_list
 
 
-async def reloadCommandList(arguments):
+@commands.command(name='reload')
+async def reloadCommandList(ctx):
   """
 Reloads command list from .csv file
 
@@ -111,7 +101,7 @@ Parameters:
 Output:
   Message: Showing count of commands"""
   
-  channel = arguments.channel
+  channel = ctx
   global command_dictionary
 
   with open(command_file, 'r', newline='') as file:
@@ -126,53 +116,6 @@ Output:
   print(f"reload: {command_dictionary}")
 
   return command_dictionary
-
-
-async def helpCommandList(arguments):
-  """
-Shows a list of available commands or description of a command
-
-Parameters:
-  optional: string
-
-Output:
-  Message: Available commands or help for a command"""
-
-  channel = arguments.channel
-  arg_list = arguments.arguments
-
-  global command_dictionary
-
-  command = None
-  command_found = False
-
-  if(arg_list != None):
-    command = arg_list[0]
-    command_found = command in command_dictionary
-
-
-  if(arg_list == None or not command_found):
-    help_message = "Available commands: "
-    if(not command_found and arg_list != None):
-      help_message = f"Command '{command}' was not found\n" + help_message
-
-    print(f"help: {command_dictionary}")
-    
-    for key in command_dictionary:
-      help_message += "**" + key + "**"
-      help_message += ", "
-
-    help_message = help_message[:-2]
-
-    await channel.send(help_message)
-
-  elif(command_found):
-    print(command_dictionary[command])
-    match = re.search('"""([^"]*)"""', getsource(globals()[command_dictionary[command]]))
-    string_literals = f"Command **{command}** documentation:\n```"
-    string_literals += match.group(1)
-    string_literals += "```"
-    await channel.send(string_literals)
 
 
 def get_admin_ids():
@@ -197,7 +140,8 @@ Return:
     return admin_ids
 
 
-async def messageReaction(arguments):
+@commands.command(name='reaction')
+async def messageReaction(ctx):
   """
 Generates 'Say hello!' message, that you can react to. It will say 'Hello {user.name}!' back.
 
@@ -207,15 +151,16 @@ Parameters:
 Output:
   Message: Message that triggers on react"""
 
-  channel = arguments.channel
-  client = arguments.client
+  channel = ctx
+  client = ctx.bot
   await channel.send('Say hello!')
   response_data = await client.wait_for('reaction_add')
   user = response_data[1]
   await channel.send(f'Hello {user.name}!')
 
 
-async def changeStatus(arguments):
+@commands.command(name='changestatus')
+async def changeStatus(ctx, *args):
   """
 Changes bot status to idle or online and adds text to "Playing ..." status.
 
@@ -226,8 +171,8 @@ Parameters:
 Output:
   Bot status: Bot status changes based on parameters"""
 
-  client = arguments.client
-  arg_list = arguments.arguments
+  client = ctx
+  arg_list = args
   new_status = arg_list[0]
   status_message = " ".join(arg_list[1:])
   new_activity = discord.Game(name=status_message)
@@ -239,7 +184,9 @@ Output:
     await client.change_presence(status=discord.Status.online, activity=new_activity)
 
 
-async def signUp(arguments):
+
+@commands.command(name='signup')
+async def signUp(ctx):
   """
 Writes your name and id to signup_list.csv.
 
@@ -249,13 +196,11 @@ Parameters:
 Output:
   Message: Message that tells you if you are signed up already or sign up worked"""
 
-  channel = arguments.channel
-  message = arguments.message
-  
-  current_list = {}
+  channel = ctx
+  username = ctx.author.name
+  user_id = ctx.author.id
 
-  username = message.author.name
-  user_id = message.author.id
+  current_list = {}
 
   with open(signup_file, 'r', newline='') as csv_file:
     reader = csv.DictReader(csv_file)
@@ -268,8 +213,9 @@ Output:
   else:
     await channel.send('You are already signed up!')
 
-  
-async def removeSignUp(arguments):
+
+@commands.command(name='removesignup')
+async def removeSignUp(ctx):
   """
 Removes your name and id from signup_list.csv.
 
@@ -279,13 +225,12 @@ Parameters:
 Output:
   Message: Message that tells you if your signup was removed or you were not in the list"""
 
-  channel = arguments.channel
-  message = arguments.message
-  
-  current_list = {}
+  channel = ctx
+  username = ctx.author
+  user_id = ctx.author.id
 
   header = 'discord_id,name'
-  user_id = message.author.id
+  current_list = {}
 
   was_signed_up = False
 
@@ -305,7 +250,8 @@ Output:
       await channel.send('You were not signed up.')
 
 
-async def removeReaction(arguments):
+@commands.command(name='removereaction')
+async def removeReaction(ctx):
   """
 Creates a message that removes reactions.
 
@@ -315,8 +261,8 @@ Parameters:
 Output:
   Message: Message that will have reactions removed"""
 
-  channel = arguments.channel
-  client = arguments.client
+  channel = ctx
+  client = ctx.bot
   msg_remove_reactions = (await channel.send('If you react to this message, I will remove it!'))
   @client.event
   async def on_reaction_add(reaction, user):
@@ -324,7 +270,8 @@ Output:
       await msg_remove_reactions.remove_reaction(reaction, user)
 
 
-def load_settings():
+@commands.command(name='loadsettings')
+async def load_settings(ctx):
   """
 Loads settings for bot behavior
 
@@ -345,7 +292,8 @@ Return:
   return setting_dictionary
 
 
-async def changeSetting(arguments):
+@commands.command(name='changesetting')
+async def changeSetting(ctx, *args):
   """
 Takes settings name and value and changes it, if it exists.
 
@@ -356,8 +304,8 @@ Parameters:
 Output:
   Message: Message that says what was changed to and from"""
 
-  channel = arguments.channel
-  arg_list = arguments.arguments
+  channel = ctx
+  arg_list = args
 
   if(len(arg_list) < 2):
     await channel.send("Need arguments: setting, value")
@@ -392,24 +340,25 @@ Output:
   else:
     await channel.send('Setting not found')
 
-def is_of_type(valuetype, string):
+
+def is_of_type(valuetype, value):
   """
   Checks if string can be considered a valuetype of bool or int"""
-
   if(valuetype == "bool"):
-    if(string != 'True' and string != 'False'):
+    if(value != 'True' and value != 'False'):
       return False
     else:
       return True
   if(valuetype == "int"):
-    if(string.ascii_letters in string or string.punctuation in string):
+    if(string.ascii_letters in value or string.punctuation in value):
       return False
     else:
       return True
   return True
 
 
-async def showSettings(arguments):
+@commands.command(name='settings')
+async def showSettings(ctx, *args):
   """
 Shows a list of settings or description of a setting
 
@@ -419,22 +368,20 @@ Parameters:
 Output:
   Message: list of settings or help for a setting"""
 
-  channel = arguments.channel
-  arg_list = arguments.arguments
+  channel = ctx
 
   global setting_dictionary
 
-  setting_name = None
   setting_found = False
+  setting_name = None
 
-  if(arg_list != None):
-    setting_name = arg_list[0]
+  if(len(args) >= 1):
+    setting_name = args[0]
     setting_found = setting_name in setting_dictionary
 
-
-  if(arg_list == None or not setting_found):
+  if(not setting_found):
     settings_message = "Settings: "
-    if(not setting_found and arg_list != None):
+    if(not setting_found and setting_name != None):
       settings_message = f"Setting '{setting_name}' was not found\n" + settings_message
     
     for key in setting_dictionary:
@@ -445,7 +392,7 @@ Output:
 
     await channel.send(settings_message)
 
-  elif(setting_found):
+  else:
     setting_string = f"Setting **{setting_name}** fields:\n```"
     setting_string += "Type: " + setting_dictionary[setting_name]['valuetype'] + ""
     setting_string += " | Value: " + setting_dictionary[setting_name]['value'] + ""
@@ -453,3 +400,16 @@ Output:
     setting_string += setting_dictionary[setting_name]['description']
     setting_string += "```"
     await channel.send(setting_string)
+
+
+
+async def setup(bot):
+    global command_dictionary, setting_dictionary
+    command_dictionary = await reloadCommandList(None)
+    setting_dictionary = await load_settings(None)
+    for key in command_dictionary:
+      function_name = command_dictionary[key]
+      try:
+        bot.add_command(globals()[function_name])
+      except:
+        print(f"{function_name} was not found.")
