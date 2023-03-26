@@ -10,10 +10,14 @@ command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
 signup_file = 'signup_list.csv'
 settings_file = 'settings_list.csv'
+message_file = 'message_list.csv'
 
 command_dictionary = {}
 setting_dictionary = {}
 admin_ids = []
+
+accept_emoji = '✅'
+reject_emoji = '❎'
 
 
 def check_if_admin():
@@ -402,6 +406,24 @@ Output:
     setting_string += "```"
     await channel.send(setting_string, reference=ctx.message)
 
+def load_messages():
+  """
+Loads messages for events
+
+Parameters:
+  none
+
+Return:
+  list: list of messages"""
+
+  message_list = []
+
+  with open(message_file, mode='r') as csv_file:
+      csv_reader = csv.DictReader(csv_file)
+      message_list = {row['message_id']: {'message_type':row['message_type'], 'role':row['role']} for row in csv_reader}
+  
+  print("Messages loaded!")
+  return message_list
 
 
 async def setup(bot):
@@ -415,7 +437,107 @@ async def setup(bot):
         bot.add_command(globals()[function_name])
       except:
         print(f"{function_name} was not found.")
+    await bot.add_cog(Events(bot))
 
+
+@commands.command(name='signuphere')
+async def signupHere(ctx):
+  """
+Creates a message that enables signups on reaction.
+
+Parameters:
+  None
+
+Output:
+  Message: Message that will signup user on react"""
+
+  channel = ctx
+
+  current_list = {}
+
+  with open(message_file, 'r', newline='') as csv_file:
+    reader = csv.DictReader(csv_file)
+    current_list = {row['message_id']: {'message_type':row['message_type'], 'role':row['role']} for row in reader}
+  message_id = 0
+  for row in current_list:
+    if('signuphere' == current_list[row]['message_type']):
+      message_id = int(row)
+      break
+  if(message_id):
+    message_to_delete = await channel.fetch_message(message_id)
+    await message_to_delete.delete()
+    header = 'message_id,message_type,role'
+    with open(message_file, 'w', newline='') as csv_file:
+      csv_file.write(header)
+      for key in current_list:
+        if(key != str(message_id)):
+          csv_file.write('\n' + key + ',' + current_list[key]['message_type'] + current_list[key]['role'])
+  
+
+  signup_message = (await channel.send('React to signup!', ))
+  emoji_signup = accept_emoji
+  emoji_remove_signup = reject_emoji
+  await signup_message.add_reaction(emoji_signup)
+  await signup_message.add_reaction(emoji_remove_signup)
+  with open(message_file, 'a', newline='') as csv_file:
+    csv_file.write('\n' + str(signup_message.id) + ',' + 'signuphere' + ',' + 'None')
+    print("Signuphere message added!")
+
+class Events(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+      message_list = load_messages()
+      for key in message_list.keys():
+        message_id = payload.message_id
+        guild_id = payload.guild_id
+        channel_id = payload.channel_id
+        emoji = payload.emoji
+        channel = (self.bot.get_guild(guild_id)).get_channel(channel_id)
+        if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
+          print("Reacted.", repr(emoji))
+          current_list = {}
+          user_id = payload.user_id
+          username = payload.member.name
+
+          with open(signup_file, 'r', newline='') as csv_file:
+            reader = csv.DictReader(csv_file)
+            current_list = {row['discord_id']: row['name'] for row in reader}
+
+          if(emoji.name == accept_emoji):
+            print(f"Signing up {username}!")
+            if(str(user_id) not in current_list):
+              with open(signup_file, 'a', newline='') as csv_file:
+                csv_file.write('\n' + str(user_id) + ',' + username)
+              delete_after = await channel.send(f'{username} signed up!')
+              await asyncio.sleep(5)
+              await delete_after.delete()
+
+          elif(emoji.name == reject_emoji):
+            if(str(user_id) in current_list):
+              print(f"Removing sign up {username}!")
+              header = 'discord_id,name'
+
+              with open(signup_file, 'r', newline='') as csv_file:
+                reader = csv.DictReader(csv_file)
+                current_list = {row['discord_id']: row['name'] for row in reader}
+                
+              with open(signup_file, 'w', newline='') as csv_file:
+                csv_file.write(header)
+                for key in current_list:
+                  if(key != str(user_id)):
+                    csv_file.write('\n' + key + ',' + current_list[key])
+
+              delete_after = await channel.send(f'{username} removed sign up!')
+
+              user = payload.member
+              msg_remove_reactions = await channel.fetch_message(message_id)
+              await msg_remove_reactions.remove_reaction(accept_emoji, user)
+              await msg_remove_reactions.remove_reaction(reject_emoji, user)
+              await asyncio.sleep(5)
+              await delete_after.delete()
 
 @delayedPrint.error
 async def info_error(ctx, error):
