@@ -41,24 +41,20 @@ Output:
 
 
 @commands.command(name='dprint')
-async def delayedPrint(ctx, *args):
+async def delayedPrint(ctx, delay: float, message: str):
   """
 Prints text after delay in same message channel.
 
 Parameters:
-  str: string requires quotes
   float: delay in seconds
+  str: string requires quotes
 
 Output:
   Message: Send text as message after delay in seconds"""
 
   channel = ctx
-  if(len(args) >= 2):
-    message = args[0]
-    delay = args[1]
-    if(is_of_type('int', delay)):
-      await asyncio.sleep(float(delay))
-      await channel.send(message)
+  await asyncio.sleep(delay)
+  await channel.send(message)
 
 
 def list_find_first_string(arguments: list):
@@ -293,7 +289,7 @@ Return:
 
 
 @commands.command(name='changesetting')
-async def changeSetting(ctx, *args):
+async def changeSetting(ctx, setting_name: str, setting_value: str):
   """
 Takes settings name and value and changes it, if it exists.
 
@@ -305,16 +301,7 @@ Output:
   Message: Message that says what was changed to and from"""
 
   channel = ctx
-  arg_list = args
 
-  if(len(arg_list) < 2):
-    await channel.send("Need arguments: setting, value")
-    return
-
-  setting_name = arg_list[0]
-  setting_value = arg_list[1]
-
-  
   current_list = {}
 
   header = 'setting,description,value,valuetype'
@@ -372,12 +359,12 @@ Output:
 
   global setting_dictionary
 
-  setting_found = False
   setting_name = None
 
   if(len(args) >= 1):
     setting_name = args[0]
-    setting_found = setting_name in setting_dictionary
+
+  setting_found = setting_name in setting_dictionary
 
   if(not setting_found):
     settings_message = "Settings: "
