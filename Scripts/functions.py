@@ -13,10 +13,16 @@ settings_file = 'settings_list.csv'
 
 command_dictionary = {}
 setting_dictionary = {}
+admin_ids = []
 
-command_file = 'command_list.csv'
 
-command_dictionary = {}
+def check_if_admin():
+    def predicate(ctx):
+        for role in ctx.message.author.roles:
+          if(role.name == 'Admin'):
+            return True
+        return False
+    return commands.check(predicate)
 
 @commands.command()
 async def hello(ctx):
@@ -54,7 +60,7 @@ Output:
 
   channel = ctx
   await asyncio.sleep(delay)
-  await channel.send(message)
+  await channel.send(message, reference=ctx.message)
 
 
 def list_find_first_string(arguments: list):
@@ -87,6 +93,8 @@ Return:
 
 
 @commands.command(name='reload')
+@check_if_admin()
+@commands.cooldown(1, 10, commands.BucketType.default)
 async def reloadCommandList(ctx):
   """
 Reloads command list from .csv file
@@ -156,6 +164,8 @@ Output:
 
 
 @commands.command(name='changestatus')
+@check_if_admin()
+@commands.cooldown(1, 10, commands.BucketType.default)
 async def changeStatus(ctx, *args):
   """
 Changes bot status to idle or online and adds text to "Playing ..." status.
@@ -205,9 +215,9 @@ Output:
   if(str(user_id) not in current_list):
     with open(signup_file, 'a', newline='') as csv_file:
       csv_file.write('\n' + str(user_id) + ',' + username)
-    await channel.send('Signed up!')
+    await channel.send('Signed up!', reference=ctx.message)
   else:
-    await channel.send('You are already signed up!')
+    await channel.send('You are already signed up!', reference=ctx.message)
 
 
 @commands.command(name='removesignup')
@@ -239,11 +249,11 @@ Output:
     for key in current_list:
       if(key == str(user_id) and not was_signed_up):
         was_signed_up = True
-        await channel.send('Signup removed!')
+        await channel.send('Signup removed!', reference=ctx.message)
       else:
         csv_file.write('\n' + key + ',' + current_list[key])
     if(not was_signed_up):
-      await channel.send('You were not signed up.')
+      await channel.send('You were not signed up.', reference=ctx.message)
 
 
 @commands.command(name='removereaction')
@@ -267,6 +277,8 @@ Output:
 
 
 @commands.command(name='loadsettings')
+@check_if_admin()
+@commands.cooldown(1, 10, commands.BucketType.default)
 async def load_settings(ctx):
   """
 Loads settings for bot behavior
@@ -289,6 +301,7 @@ Return:
 
 
 @commands.command(name='changesetting')
+@check_if_admin()
 async def changeSetting(ctx, setting_name: str, setting_value: str):
   """
 Takes settings name and value and changes it, if it exists.
@@ -309,7 +322,7 @@ Output:
   if(setting_name in setting_dictionary):
     
     if(not is_of_type(setting_dictionary[setting_name]['valuetype'], setting_value)):
-      await channel.send('Setting is not correct type')
+      await channel.send('Setting is not correct type', reference=ctx.message)
 
     with open(settings_file, 'r', newline='') as csv_file:
       csv_reader = csv.DictReader(csv_file)
@@ -325,7 +338,7 @@ Output:
         else:
           csv_file.write('\n' + setting + ',' + current_list[setting]['description'] + ',' + current_list[setting]['value'] + ',' + current_list[setting]['valuetype'])
   else:
-    await channel.send('Setting not found')
+    await channel.send('Setting not found', reference=ctx.message)
 
 
 def is_of_type(valuetype, value):
@@ -343,8 +356,9 @@ def is_of_type(valuetype, value):
       return True
   return True
 
-
 @commands.command(name='settings')
+@check_if_admin()
+@commands.cooldown(1, 10, commands.BucketType.default)
 async def showSettings(ctx, *args):
   """
 Shows a list of settings or description of a setting
@@ -377,7 +391,7 @@ Output:
 
     settings_message = settings_message[:-2]
 
-    await channel.send(settings_message)
+    await channel.send(settings_message, reference=ctx.message)
 
   else:
     setting_string = f"Setting **{setting_name}** fields:\n```"
@@ -386,17 +400,23 @@ Output:
     setting_string += "\nDescription:\n"
     setting_string += setting_dictionary[setting_name]['description']
     setting_string += "```"
-    await channel.send(setting_string)
+    await channel.send(setting_string, reference=ctx.message)
 
 
 
 async def setup(bot):
-    global command_dictionary, setting_dictionary
+    global command_dictionary, setting_dictionary, admin_ids
     command_dictionary = await reloadCommandList(None)
     setting_dictionary = await load_settings(None)
+    admin_ids = get_admin_ids()
     for key in command_dictionary:
       function_name = command_dictionary[key]
       try:
         bot.add_command(globals()[function_name])
       except:
         print(f"{function_name} was not found.")
+
+
+@delayedPrint.error
+async def info_error(ctx, error):
+    await ctx.send(error)
