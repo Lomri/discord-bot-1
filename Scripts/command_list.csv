@@ -1,6 +1,5 @@
 command,function,admincommand
 reload,reloadCommandList,True
-help,helpCommandList,False
 print,printText,False
 dprint,delayedPrint,False
 reaction,messageReaction,False
