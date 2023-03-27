@@ -4,8 +4,6 @@ print,printText,False
 dprint,delayedPrint,False
 reaction,messageReaction,False
 changestatus,changeStatus,True
-signup,signUp,False
-removesignup,removeSignUp,True
 removereaction,removeReaction,True
 changesetting,changeSetting,True
 settings,showSettings,True
