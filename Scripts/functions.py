@@ -19,6 +19,10 @@ admin_ids = []
 accept_emoji = '✅'
 reject_emoji = '❎'
 
+signup_role_name = 'Player'
+signup_role = None
+admin_role = 'Admin'
+
 
 def check_if_admin():
     def predicate(ctx):
@@ -28,9 +32,13 @@ def check_if_admin():
         return False
     return commands.check(predicate)
 
-@commands.command()
-async def hello(ctx):
-    await ctx.send('Hello {0.display_name}.'.format(ctx.author))
+def check_if_player():
+    def predicate(ctx):
+        for role in ctx.message.author.roles:
+          if(role.name == 'Player'):
+            return True
+        return False
+    return commands.check(predicate)
 
 
 @commands.command(name='print')
@@ -51,6 +59,7 @@ Output:
 
 
 @commands.command(name='dprint')
+@check_if_player()
 async def delayedPrint(ctx, delay: float, message: str):
   """
 Prints text after delay in same message channel.
@@ -488,6 +497,23 @@ class Events(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
+    async def on_ready(self):
+      print("Initializing")
+      global signup_role
+      async for guild in self.bot.fetch_guilds(limit=150):
+        print(guild)
+        guild_roles = guild.roles
+        found_signup_role = False
+        for role in guild_roles:
+          print(role)
+          if(role.name == signup_role):
+            found_signup_role = True
+            signup_role = role
+            break
+        if(not found_signup_role):
+          signup_role = (await guild.create_role(name="Player"))
+
+    @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
       message_list = load_messages()
       for key in message_list.keys():
@@ -495,43 +521,29 @@ class Events(commands.Cog):
         guild_id = payload.guild_id
         channel_id = payload.channel_id
         emoji = payload.emoji
-        channel = (self.bot.get_guild(guild_id)).get_channel(channel_id)
+        guild = self.bot.get_guild(guild_id)
+        channel = guild.get_channel(channel_id)
         if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
           print("Reacted.", repr(emoji))
-          current_list = {}
-          user_id = payload.user_id
+          user = payload.member
           username = payload.member.name
 
-
           if(emoji.name == accept_emoji):
-            current_list = self.get_message_list()
             print(f"Signing up {username}!")
-            if(str(user_id) not in current_list):
-              with open(signup_file, 'a', newline='') as csv_file:
-                csv_file.write('\n' + str(user_id) + ',' + username)
+            if(signup_role not in user.roles):
+              await user.add_roles(signup_role)
               delete_after = await channel.send(f'{username} signed up!')
               await asyncio.sleep(5)
               await delete_after.delete()
 
           elif(emoji.name == reject_emoji):
-            current_list = self.get_message_list()
             user = payload.member
             msg_remove_reactions = await channel.fetch_message(message_id)
             await msg_remove_reactions.remove_reaction(accept_emoji, user)
             await msg_remove_reactions.remove_reaction(reject_emoji, user)
-            if(str(user_id) in current_list):
-              print(f"Removing sign up {username}!")
-              header = 'discord_id,name'
-
-              with open(signup_file, 'r', newline='') as csv_file:
-                reader = csv.DictReader(csv_file)
-                current_list = {row['discord_id']: row['name'] for row in reader}
-                
-              with open(signup_file, 'w', newline='') as csv_file:
-                csv_file.write(header)
-                for key in current_list:
-                  if(key != str(user_id)):
-                    csv_file.write('\n' + key + ',' + current_list[key])
+            if(signup_role in user.roles):
+              
+              await user.remove_roles(signup_role)
 
               delete_after = await channel.send(f'{username} removed sign up!')
 
@@ -561,36 +573,19 @@ class Events(commands.Cog):
         guild = self.bot.get_guild(guild_id)
         channel = guild.get_channel(channel_id)
         if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
-          print("Removed reaction.", repr(emoji))
-          current_list = {}
           user_id = payload.user_id
           user = await guild.fetch_member(user_id)
-          print('guild', guild)
-          print('user_id', user_id)
-          print('user', user)
           username = user.name
 
           if(emoji.name == accept_emoji):
-            with open(signup_file, 'r', newline='') as csv_file:
-              reader = csv.DictReader(csv_file)
-              current_list = {row['discord_id']: row['name'] for row in reader}
-            
             msg_remove_reactions = await channel.fetch_message(message_id)
+
             await msg_remove_reactions.remove_reaction(accept_emoji, user)
             await msg_remove_reactions.remove_reaction(reject_emoji, user)
-            if(str(user_id) in current_list):
-              print(f"Removing sign up {username}!")
-              header = 'discord_id,name'
 
-              with open(signup_file, 'r', newline='') as csv_file:
-                reader = csv.DictReader(csv_file)
-                current_list = {row['discord_id']: row['name'] for row in reader}
-                
-              with open(signup_file, 'w', newline='') as csv_file:
-                csv_file.write(header)
-                for key in current_list:
-                  if(key != str(user_id)):
-                    csv_file.write('\n' + key + ',' + current_list[key])
+            if(signup_role in user.roles):
+              
+              await user.remove_roles(signup_role)
 
               delete_after = await channel.send(f'{username} removed sign up!')
 
@@ -599,4 +594,6 @@ class Events(commands.Cog):
 
 @delayedPrint.error
 async def info_error(ctx, error):
-    await ctx.send(error)
+    delete_after = await ctx.send(error)
+    await asyncio.sleep(5)
+    await delete_after.delete()
