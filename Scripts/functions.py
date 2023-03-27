@@ -467,40 +467,15 @@ Output:
     csv_file.write('\n' + str(signup_message.id) + ',' + 'signuphere' + ',' + 'None')
     print("Signuphere message added!")
 
+#setting role from server_setup.py finds roles by names in on_ready and gives to functions.py for use
+def set_role(role):
+  global signup_role
+
+  signup_role = role
+
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-
-      print("Initializing")
-
-      global signup_role
-
-      async for guild in self.bot.fetch_guilds(limit=150):
-        #Fetch all servers, add Player role if it's missing and add it to global variable
-
-        print(guild)
-
-        found_signup_role = False
-        role_list = await guild.fetch_roles()
-
-        for role in role_list:
-          print(role)
-          if(role.name == signup_role_name):
-            #role found
-
-            found_signup_role = True
-            signup_role = role
-
-            print("Player role found!")
-            break
-
-        if(not found_signup_role):
-          #role not found
-          print("Player role created!")
-          signup_role = (await guild.create_role(name="Player"))
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
