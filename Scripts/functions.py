@@ -474,7 +474,7 @@ Output:
           csv_file.write('\n' + key + ',' + current_list[key]['message_type'] + current_list[key]['role'])
   
 
-  signup_message = (await channel.send('React to signup!', ))
+  signup_message = (await channel.send(f'React {accept_emoji} to signup!\n\nReact {reject_emoji} or remove {accept_emoji} reaction to remove signup!', ))
   emoji_signup = accept_emoji
   emoji_remove_signup = reject_emoji
   await signup_message.add_reaction(emoji_signup)
@@ -502,11 +502,9 @@ class Events(commands.Cog):
           user_id = payload.user_id
           username = payload.member.name
 
-          with open(signup_file, 'r', newline='') as csv_file:
-            reader = csv.DictReader(csv_file)
-            current_list = {row['discord_id']: row['name'] for row in reader}
 
           if(emoji.name == accept_emoji):
+            current_list = self.get_message_list()
             print(f"Signing up {username}!")
             if(str(user_id) not in current_list):
               with open(signup_file, 'a', newline='') as csv_file:
@@ -516,6 +514,11 @@ class Events(commands.Cog):
               await delete_after.delete()
 
           elif(emoji.name == reject_emoji):
+            current_list = self.get_message_list()
+            user = payload.member
+            msg_remove_reactions = await channel.fetch_message(message_id)
+            await msg_remove_reactions.remove_reaction(accept_emoji, user)
+            await msg_remove_reactions.remove_reaction(reject_emoji, user)
             if(str(user_id) in current_list):
               print(f"Removing sign up {username}!")
               header = 'discord_id,name'
@@ -532,10 +535,64 @@ class Events(commands.Cog):
 
               delete_after = await channel.send(f'{username} removed sign up!')
 
-              user = payload.member
+              await asyncio.sleep(5)
+              await delete_after.delete()
+            else:
               msg_remove_reactions = await channel.fetch_message(message_id)
               await msg_remove_reactions.remove_reaction(accept_emoji, user)
               await msg_remove_reactions.remove_reaction(reject_emoji, user)
+
+    def get_message_list(self):
+        with open(signup_file, 'r', newline='') as csv_file:
+          reader = csv.DictReader(csv_file)
+          current_list = {row['discord_id']: row['name'] for row in reader}
+        return current_list
+              
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+      print("remove reaction")
+      message_list = load_messages()
+      for key in message_list.keys():
+        message_id = payload.message_id
+        guild_id = payload.guild_id
+        channel_id = payload.channel_id
+        emoji = payload.emoji
+        guild = self.bot.get_guild(guild_id)
+        channel = guild.get_channel(channel_id)
+        if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
+          print("Removed reaction.", repr(emoji))
+          current_list = {}
+          user_id = payload.user_id
+          user = await guild.fetch_member(user_id)
+          print('guild', guild)
+          print('user_id', user_id)
+          print('user', user)
+          username = user.name
+
+          if(emoji.name == accept_emoji):
+            with open(signup_file, 'r', newline='') as csv_file:
+              reader = csv.DictReader(csv_file)
+              current_list = {row['discord_id']: row['name'] for row in reader}
+            
+            msg_remove_reactions = await channel.fetch_message(message_id)
+            await msg_remove_reactions.remove_reaction(accept_emoji, user)
+            await msg_remove_reactions.remove_reaction(reject_emoji, user)
+            if(str(user_id) in current_list):
+              print(f"Removing sign up {username}!")
+              header = 'discord_id,name'
+
+              with open(signup_file, 'r', newline='') as csv_file:
+                reader = csv.DictReader(csv_file)
+                current_list = {row['discord_id']: row['name'] for row in reader}
+                
+              with open(signup_file, 'w', newline='') as csv_file:
+                csv_file.write(header)
+                for key in current_list:
+                  if(key != str(user_id)):
+                    csv_file.write('\n' + key + ',' + current_list[key])
+
+              delete_after = await channel.send(f'{username} removed sign up!')
+
               await asyncio.sleep(5)
               await delete_after.delete()
 
