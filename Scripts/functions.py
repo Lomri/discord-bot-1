@@ -15,11 +15,19 @@ command_dictionary = {}
 setting_dictionary = {}
 admin_ids = []
 
+
 accept_emoji = '✅'
 reject_emoji = '❎'
+checkmark_emoji = '✓'
+x_emoji = 'X'
 
 signup_role_name = 'Player'
+player_field_category_name = 'Player Field'
+
 signup_role = None
+
+main_category = None
+
 admin_role = 'Admin'
 
 
@@ -408,6 +416,106 @@ async def setup(bot):
     #add events
     await bot.add_cog(Events(bot))
 
+    global settings
+
+    #Make a Setting class with validate function as first parameter, second parameter is printed in validate feedback text block
+    signup_role = Setting(signup_role_validate, 'Player role')
+    main_category = Setting(category_exists_validate, 'Main category')
+
+    #adds to settings.list
+    settings.add(signup_role)
+    settings.add(main_category)
+
+
+@commands.command(name='validatesetup')
+@check_if_admin()
+#limit, delay, buckettype.default means global cooldown
+@commands.cooldown(1, 5, commands.BucketType.default)
+async def validateServerSetup(ctx):
+  #Checks Settings class for settings to validate, settings that are None are printed with X rest are with ✓
+  global settings
+
+  string = '```Settings validation:\n'
+
+  for setting in settings.list:
+    value = await setting.validate(ctx)
+
+    string += '  '
+    string += value
+    string += '\n'
+
+  string += '```'
+
+  await ctx.send(string)
+
+
+async def category_exists_validate(ctx) -> discord.CategoryChannel:
+  category_list = ctx.guild.categories
+
+  main_category = None
+
+  for category in category_list:
+    #Checks for categories and if main category exists
+    print(category)
+
+    if(category.name == player_field_category_name):
+      #category found
+
+      main_category = category
+
+      print("Main category found!")
+      break
+  
+  return main_category
+
+
+async def signup_role_validate(ctx) -> discord.Role:
+  role_list = await ctx.guild.fetch_roles()
+
+  signup_role = None
+
+  for role in role_list:
+    if(role.name == signup_role_name):
+      #role found
+
+      signup_role = role
+
+      print("Player role found!")
+      break
+
+  return signup_role
+
+#class to make setting have validation function and return value after validation
+class Setting:
+  def __init__(self, validation_function, name) -> None:
+    self.validation_function = validation_function
+
+    self.__name = name
+    self.__value = None
+
+  async def validate(self, ctx):
+
+    self.__value = await self.validation_function(ctx)
+
+    string = f'{self.__name}'
+
+    if(self.__value != None):
+      string += ' ' + checkmark_emoji
+
+    else:
+      string += ' ' + x_emoji
+
+    return string
+  
+#class for making a list of settings to run .validate() on each setting
+class Settings:
+  def __init__(self) -> None:
+    self.list = []
+
+  def add(self, setting: Setting):
+    self.list.append(setting)
+
+settings = Settings()
 
 @commands.command(name='signuphere')
 async def signupHere(ctx):
@@ -472,6 +580,14 @@ def set_role(role):
   global signup_role
 
   signup_role = role
+
+
+#setting main category from server_setup.py finds categories in on_ready and give main category to functions.py for use
+def set_main_category(category):
+  global main_category
+
+  main_category = category
+
 
 class Events(commands.Cog):
     def __init__(self, bot):

@@ -8,3 +8,4 @@ removereaction,removeReaction,True
 changesetting,changeSetting,True
 settings,showSettings,True
 signuphere,signupHere
+validatesetup,validateServerSetup
