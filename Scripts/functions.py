@@ -450,74 +450,76 @@ class Events(commands.Cog):
     async def on_raw_reaction_add(self, payload):
       message_list = load_messages()
       for key in message_list.keys():
-        message_id = payload.message_id
-        guild_id = payload.guild_id
-        channel_id = payload.channel_id
-        emoji = payload.emoji
-        guild = self.bot.get_guild(guild_id)
-        channel = guild.get_channel(channel_id)
+        message_id, emoji, guild, channel = self.common_variables(payload)
         if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
-          print("Reacted.", repr(emoji))
           user = payload.member
           username = payload.member.name
 
           if(emoji.name == accept_emoji):
-            print(f"Signing up {username}!")
             if(signup_role not in user.roles):
               await user.add_roles(signup_role)
-              delete_after = await channel.send(f'{username} signed up!')
-              await asyncio.sleep(5)
-              await delete_after.delete()
+
+              delete_message = f'{username} signed up!'
+              print(delete_message)
+              delay = 5
+              await self.delete_after_delay(channel, delete_message, delay)
 
           elif(emoji.name == reject_emoji):
             user = payload.member
-            msg_remove_reactions = await channel.fetch_message(message_id)
-            await msg_remove_reactions.remove_reaction(accept_emoji, user)
-            await msg_remove_reactions.remove_reaction(reject_emoji, user)
+            await self.remove_accept_reject_reactions(message_id, channel, user)
+
             if(signup_role in user.roles):
-              
               await user.remove_roles(signup_role)
 
-              delete_after = await channel.send(f'{username} removed sign up!')
+              delete_message = f'{username} removed sign up!'
+              print(delete_message)
+              delay = 5
+              await self.delete_after_delay(channel, delete_message, delay)
 
-              await asyncio.sleep(5)
-              await delete_after.delete()
           else:
             user = payload.member
-            msg_remove_reactions = await channel.fetch_message(message_id)
-            await msg_remove_reactions.remove_reaction(emoji, user)
-            await msg_remove_reactions.remove_reaction(emoji, user)
+            await self.remove_accept_reject_reactions(message_id, channel, user)
+
+    async def remove_accept_reject_reactions(self, message_id, channel, user):
+        msg_remove_reactions = await channel.fetch_message(message_id)
+        await msg_remove_reactions.remove_reaction(accept_emoji, user)
+        await msg_remove_reactions.remove_reaction(reject_emoji, user)
+
+    async def delete_after_delay(self, channel, delete_message, delay):
+        delete_after = await channel.send(delete_message)
+        await asyncio.sleep(delay)
+        await delete_after.delete()
               
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-      print("remove reaction")
       message_list = load_messages()
       for key in message_list.keys():
-        message_id = payload.message_id
-        guild_id = payload.guild_id
-        channel_id = payload.channel_id
-        emoji = payload.emoji
-        guild = self.bot.get_guild(guild_id)
-        channel = guild.get_channel(channel_id)
+        message_id, emoji, guild, channel = self.common_variables(payload)
         if(str(message_id) == key and message_list[key]['message_type'] == 'signuphere'):
           user_id = payload.user_id
           user = await guild.fetch_member(user_id)
           username = user.name
 
           if(emoji.name == accept_emoji):
-            msg_remove_reactions = await channel.fetch_message(message_id)
-
-            await msg_remove_reactions.remove_reaction(accept_emoji, user)
-            await msg_remove_reactions.remove_reaction(reject_emoji, user)
+            await self.remove_accept_reject_reactions(message_id, channel, user)
 
             if(signup_role in user.roles):
               
               await user.remove_roles(signup_role)
 
-              delete_after = await channel.send(f'{username} removed sign up!')
+              delete_message = f'{username} removed sign up!'
+              print(delete_message)
+              delay = 5
+              await self.delete_after_delay(channel, delete_message, delay)
 
-              await asyncio.sleep(5)
-              await delete_after.delete()
+    def common_variables(self, payload):
+        message_id = payload.message_id
+        guild_id = payload.guild_id
+        channel_id = payload.channel_id
+        emoji = payload.emoji
+        guild = self.bot.get_guild(guild_id)
+        channel = guild.get_channel(channel_id)
+        return message_id,emoji,guild,channel
 
 @delayedPrint.error
 async def info_error(ctx, error):
