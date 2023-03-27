@@ -171,35 +171,37 @@ Output:
 @check_if_admin()
 # limit, delay, buckettype.default means global cooldown
 @commands.cooldown(1, 10, commands.BucketType.default)
-async def changeStatus(ctx, *args):
+async def change_status(ctx: commands.Context, status: str, *status_message: str) -> None:
   """
-Changes bot status to idle or online and adds text to "Playing ..." status.
+  Changes bot status to idle or online and adds text to "Playing ..." status.
 
-Parameters:
-  str: idle or online
-  str: status message
+  Parameters:
+      ctx (commands.Context): The context of the command.
+      status (str): The desired status of the bot. Either "idle" or "online".
+      status_message (str): The message to display with the bot's status.
 
-Output:
-  Bot status: Bot status changes based on parameters"""
+  Output:
+      None. The bot status changes based on the input parameters.
+  """
+  bot = ctx.bot
 
-  client = ctx
-  arg_list = args
+  if status.lower() not in ["idle", "online"]:
+    await ctx.send("Invalid status. Please enter 'idle' or 'online'.")
+    return
 
-  new_status = arg_list[0]
-  status_message = " ".join(arg_list[1:])
+  if not status_message:
+    await ctx.send("Please enter a status message.")
+    return
 
-  #creates new activity that is starting with 'Playing ...'
-  new_activity = discord.Game(name=status_message)
+  # creates new activity that is starting with 'Playing ...'
+  new_activity = discord.Game(name=' '.join(status_message))
 
-  print(new_status)
-  print(status_message)
+  # check if online or idle, then add status if it is.
+  if status.lower() == "idle":
+    await bot.change_presence(status=discord.Status.idle, activity=new_activity)
 
-  #check if online or idle, then add status if it is.
-  if(new_status == "idle"):
-    await client.change_presence(status=discord.Status.idle, activity=new_activity)
-
-  elif(new_status == "online"):
-    await client.change_presence(status=discord.Status.online, activity=new_activity)
+  elif status.lower() == "online":
+    await bot.change_presence(status=discord.Status.online, activity=new_activity)
 
 
 @commands.command(name='removereaction')
