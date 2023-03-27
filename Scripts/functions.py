@@ -8,7 +8,6 @@ import string
 
 command_file = 'command_list.csv'
 admin_file = 'admins_list.csv'
-signup_file = 'signup_list.csv'
 settings_file = 'settings_list.csv'
 message_file = 'message_list.csv'
 
@@ -201,72 +200,6 @@ Output:
     await client.change_presence(status=discord.Status.idle, activity=new_activity)
   elif(new_status == "online"):
     await client.change_presence(status=discord.Status.online, activity=new_activity)
-
-
-
-@commands.command(name='signup')
-async def signUp(ctx):
-  """
-Writes your name and id to signup_list.csv.
-
-Parameters:
-  None
-
-Output:
-  Message: Message that tells you if you are signed up already or sign up worked"""
-
-  channel = ctx
-  username = ctx.author.name
-  user_id = ctx.author.id
-
-  current_list = {}
-
-  with open(signup_file, 'r', newline='') as csv_file:
-    reader = csv.DictReader(csv_file)
-    current_list = {row['discord_id']: row['name'] for row in reader}
-
-  if(str(user_id) not in current_list):
-    with open(signup_file, 'a', newline='') as csv_file:
-      csv_file.write('\n' + str(user_id) + ',' + username)
-    await channel.send('Signed up!', reference=ctx.message)
-  else:
-    await channel.send('You are already signed up!', reference=ctx.message)
-
-
-@commands.command(name='removesignup')
-async def removeSignUp(ctx):
-  """
-Removes your name and id from signup_list.csv.
-
-Parameters:
-  None
-
-Output:
-  Message: Message that tells you if your signup was removed or you were not in the list"""
-
-  channel = ctx
-  username = ctx.author
-  user_id = ctx.author.id
-
-  header = 'discord_id,name'
-  current_list = {}
-
-  was_signed_up = False
-
-  with open(signup_file, 'r', newline='') as csv_file:
-    reader = csv.DictReader(csv_file)
-    current_list = {row['discord_id']: row['name'] for row in reader}
-
-  with open(signup_file, 'w', newline='') as csv_file:
-    csv_file.write(header)
-    for key in current_list:
-      if(key == str(user_id) and not was_signed_up):
-        was_signed_up = True
-        await channel.send('Signup removed!', reference=ctx.message)
-      else:
-        csv_file.write('\n' + key + ',' + current_list[key])
-    if(not was_signed_up):
-      await channel.send('You were not signed up.', reference=ctx.message)
 
 
 @commands.command(name='removereaction')
@@ -554,12 +487,6 @@ class Events(commands.Cog):
             msg_remove_reactions = await channel.fetch_message(message_id)
             await msg_remove_reactions.remove_reaction(emoji, user)
             await msg_remove_reactions.remove_reaction(emoji, user)
-
-    def get_message_list(self):
-        with open(signup_file, 'r', newline='') as csv_file:
-          reader = csv.DictReader(csv_file)
-          current_list = {row['discord_id']: row['name'] for row in reader}
-        return current_list
               
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
