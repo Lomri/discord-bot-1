@@ -538,9 +538,10 @@ class Events(commands.Cog):
               await asyncio.sleep(5)
               await delete_after.delete()
           else:
+            user = payload.member
             msg_remove_reactions = await channel.fetch_message(message_id)
-            await msg_remove_reactions.remove_reaction(accept_emoji, user)
-            await msg_remove_reactions.remove_reaction(reject_emoji, user)
+            await msg_remove_reactions.remove_reaction(emoji, user)
+            await msg_remove_reactions.remove_reaction(emoji, user)
 
     def get_message_list(self):
         with open(signup_file, 'r', newline='') as csv_file:
