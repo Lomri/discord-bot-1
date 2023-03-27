@@ -21,8 +21,9 @@ reject_emoji = '❎'
 checkmark_emoji = '✓'
 x_emoji = 'X'
 
-signup_role_name = 'Player'
+player_role_name = 'Player'
 player_field_category_name = 'Player Field'
+default_channel_name = 'default-channel'
 
 signup_role = None
 
@@ -418,12 +419,14 @@ async def setup(bot):
 
     global settings
 
-    #Make a Setting class with validate function as first parameter, second parameter is printed in validate feedback text block
-    signup_role = Setting(signup_role_validate, 'Player role')
-    main_category = Setting(category_exists_validate, 'Main category')
+    #Make a Setting class with validate function as first parameter, second parameter is name of list and third parameter is list of names to find for
+    roles = Setting(role_validate, "Roles", [player_role_name])
+    channels = Setting(channel_validate, "Channels", [default_channel_name])
+    main_category = Setting(category_validate, "Categories", [player_field_category_name])
 
     #adds to settings.list
-    settings.add(signup_role)
+    settings.add(roles)
+    settings.add(channels)
     settings.add(main_category)
 
 
@@ -435,13 +438,26 @@ async def validateServerSetup(ctx):
   #Checks Settings class for settings to validate, settings that are None are printed with X rest are with ✓
   global settings
 
+  new_list = []
+
   string = '```Settings validation:\n'
 
   for setting in settings.list:
-    value = await setting.validate(ctx)
-
-    string += '  '
-    string += value
+    new_list = await setting.validate(ctx)
+    print(new_list)
+    string += str(setting)
+    string += ':\n'
+    for row in new_list:
+      name, value = row
+      string += '  '
+      string += name
+      string += '  '
+      print(value)
+      if(value != None):
+        string += checkmark_emoji
+      else:
+        string += x_emoji
+      string += '\n'
     string += '\n'
 
   string += '```'
@@ -449,63 +465,70 @@ async def validateServerSetup(ctx):
   await ctx.send(string)
 
 
-async def category_exists_validate(ctx) -> discord.CategoryChannel:
+async def category_validate(ctx, category_check_list: list) -> discord.CategoryChannel:
   category_list = ctx.guild.categories
 
-  main_category = None
+  return_list = []
 
-  for category in category_list:
-    #Checks for categories and if main category exists
-    print(category)
+  for category in category_check_list:
+    value = None
+    for item in category_list:
+      if(category == item.name):
+        value = item
 
-    if(category.name == player_field_category_name):
-      #category found
-
-      main_category = category
-
-      print("Main category found!")
-      break
-  
-  return main_category
+    return_list.append((category, value))
 
 
-async def signup_role_validate(ctx) -> discord.Role:
+  return return_list
+
+
+async def channel_validate(ctx, channel_check_list: list) -> discord.CategoryChannel:
+  channel_list = ctx.guild.categories
+
+  return_list = []
+
+  for channel in channel_check_list:
+    value = None
+    for item in channel_list:
+      if(channel == item.name):
+        value = item
+
+    return_list.append((channel, value))
+
+
+  return return_list
+
+
+async def role_validate(ctx, roles_check_list: list) -> discord.Role:
   role_list = await ctx.guild.fetch_roles()
 
-  signup_role = None
+  return_list = []
 
-  for role in role_list:
-    if(role.name == signup_role_name):
-      #role found
+  for role in roles_check_list:
+    value = None
+    for item in role_list:
+      if(role == item.name):
+        value = item
 
-      signup_role = role
+    return_list.append((role, value))
 
-      print("Player role found!")
-      break
 
-  return signup_role
+  return return_list
 
 #class to make setting have validation function and return value after validation
 class Setting:
-  def __init__(self, validation_function, name) -> None:
+  def __init__(self, validation_function, list_name, name: list) -> None:
     self.validation_function = validation_function
-
+    self.__list_name = list_name
     self.__name = name
-    self.__value = None
 
   async def validate(self, ctx):
+    new_list = await self.validation_function(ctx, self.__name)
 
-    self.__value = await self.validation_function(ctx)
-
-    string = f'{self.__name}'
-
-    if(self.__value != None):
-      string += ' ' + checkmark_emoji
-
-    else:
-      string += ' ' + x_emoji
-
-    return string
+    return new_list
+  
+  def __str__(self) -> str:
+    return self.__list_name
   
 #class for making a list of settings to run .validate() on each setting
 class Settings:
