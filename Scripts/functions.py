@@ -21,9 +21,10 @@ reject_emoji = '❎'
 checkmark_emoji = '✓'
 x_emoji = 'X'
 
-player_role_name = 'Player'
-player_field_category_name = 'Player Field'
-default_channel_name = 'default-channel'
+#names used for finding names for roles, channels and categories
+role_name_list = ['Player']
+channel_name_list = ['default-channel']
+category_name_list = ['Player Field']
 
 signup_role = None
 
@@ -399,20 +400,20 @@ async def setup(bot):
       except:
         print(f"{function_name} was not found.")
 
-    #add events
+    #add Cog.listeners from this module that are within Events
     await bot.add_cog(Events(bot))
 
     global settings
 
     #Make a Setting class with validate function as first parameter, second parameter is name of list and third parameter is list of names to find for
-    roles = Setting(role_validate, "Roles", [player_role_name])
-    channels = Setting(channel_validate, "Channels", [default_channel_name])
-    main_category = Setting(category_validate, "Categories", [player_field_category_name])
+    roles = Setting(role_validate, "Roles", role_name_list)
+    channels = Setting(channel_validate, "Channels", channel_name_list)
+    categories = Setting(category_validate, "Categories", category_name_list)
 
-    #adds to settings.list
+    #adds to settings.list for easier iteration
     settings.add(roles)
     settings.add(channels)
-    settings.add(main_category)
+    settings.add(categories)
 
 
 @commands.command(name='validatesetup', checks=[check_if_admin], cooldown=global_10_second_cooldown)
@@ -424,22 +425,32 @@ async def validateServerSetup(ctx):
 
   string = '```Settings validation:\n'
 
+  #iterate all roles channels and categories to check if they are set up
   for setting in settings.list:
+
+    #validate() for each setting to check if value is found
     new_list = await setting.validate(ctx)
-    print(new_list)
     string += str(setting)
+
     string += ':\n'
     for row in new_list:
+      #get name of item and value that is found item value
       name, value = row
+
+      #item name
       string += '  '
       string += name
+
+      #if item was found show checkmark_emoji, else x_emoji
       string += '  '
-      print(value)
       if(value != None):
         string += checkmark_emoji
+
       else:
         string += x_emoji
+
       string += '\n'
+
     string += '\n'
 
   string += '```'
@@ -722,13 +733,14 @@ class Events(commands.Cog):
         guild_id = payload.guild_id
         channel_id = payload.channel_id
         emoji = payload.emoji
+
         guild = self.bot.get_guild(guild_id)
         channel = guild.get_channel(channel_id)
 
         return message_id,emoji,guild,channel
 
-
-async def delete_after_delay(channel, delete_message, delay: float):
+#sends a message to a channel and deletes it after the delay
+async def delete_after_delay(channel: discord.abc.Messageable, delete_message: str, delay: float):
     delete_after = await channel.send(delete_message)
 
     await asyncio.sleep(delay)
