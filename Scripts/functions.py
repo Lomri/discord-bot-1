@@ -14,7 +14,6 @@ message_file = 'message_list.csv'
 command_dictionary = {}
 setting_dictionary = {}
 admin_ids = []
-tree = None
 
 
 accept_emoji = '✅'
@@ -43,8 +42,12 @@ delay_in_seconds_float_parameter = commands.parameter(converter=float, descripti
 
 async def check_if_admin(ctx):
     #checking if command invoker has a role with name 'Admin'
-    print("Checking if admin")
+    print("Checking admin")
 
+    # if user has a role called Admin or user id is in the admins_list.csv file, return true
+    if(ctx.message.author.id in admin_ids):
+      return True
+    
     for role in ctx.message.author.roles:
       if(role.name == 'Admin'):
         return True
@@ -54,23 +57,9 @@ async def check_if_admin(ctx):
 
     return False
 
-async def check_if_bot_admin(ctx):
-    #checking if command invoker has a role with name 'Admin'
-    print("Checking if bot admin")
-
-    for id in admin_ids:
-      if(int(id) == ctx.author.id):
-        print("Is bot admin")
-        return True
-      
-    message = f"{ctx.author.name} is not a bot admin!"
-    await delete_after_delay(ctx, message, 5)
-
-    return False
-
 async def check_if_player(ctx):
     #checking if command invoker has a role with name 'Player'
-    print("Checking if player")
+    print("Checking player")
 
     for role in ctx.message.author.roles:
       if(role.name == 'Player'):
@@ -81,15 +70,6 @@ async def check_if_player(ctx):
 
     return False
 
-
-@commands.command(name='sync', checks=[check_if_bot_admin])
-async def synchronizeSlashCommands(ctx):
-  await tree.sync()
-  print("Tree synced")
-
-@commands.hybrid_command(name='slash', with_app_command=True)
-async def slashCommand(ctx: commands.Context):
-  await ctx.send("SLAAAAAASH!")
 
 @commands.command(name='print')
 async def printText(ctx, *,  message = message_parameter):
@@ -406,15 +386,13 @@ Return:
 
 async def setup(bot):
     #initial extension loading method
-    global command_dictionary, setting_dictionary, admin_ids, tree
+    global command_dictionary, setting_dictionary, admin_ids
 
     #file reading
     command_dictionary = await reloadCommandList(None)
     setting_dictionary = await load_settings(None)
 
     admin_ids = get_admin_ids()
-
-    tree = bot.tree
 
     #add commands to bot
     for key in command_dictionary:
