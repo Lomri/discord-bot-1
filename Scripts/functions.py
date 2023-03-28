@@ -724,3 +724,23 @@ async def info_error(ctx, error):
 
     await asyncio.sleep(5)
     await delete_after.delete()
+
+# Bot command to change the topic of the channel
+@commands.command(name='topic')
+@check_if_admin()
+# Cooldown to prevent spamming
+@commands.cooldown(1, 5, commands.BucketType.default)
+async def command_change_channel_topic(ctx, *, topic):
+    """
+    Change the topic of the channel
+    
+    Usage: !topic <topic>
+    
+    Example: !topic This is a new topic"""
+    
+    await ctx.channel.edit(topic=topic)
+
+# Function to change the topic for the channel
+# Can be used as a part of a command or a task
+async def change_channel_topic(channel, topic):
+    await channel.edit(topic=topic)
