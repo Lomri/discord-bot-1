@@ -47,7 +47,7 @@ async def check_if_admin(ctx):
       if(role.name == 'Admin'):
         return True
       
-    message = f"{ctx.author.name} is not a player!"
+    message = f"{ctx.author.name} is not an admin!"
     await delete_after_delay(ctx, message, 5)
 
     return False
