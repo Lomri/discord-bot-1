@@ -31,31 +31,41 @@ main_category = None
 
 admin_role = 'Admin'
 
+# limit, delay, buckettype.default means global cooldown
+global_10_second_cooldown = commands.CooldownMapping.from_cooldown(1, 10, commands.BucketType.default)
+global_5_second_cooldown = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.default)
 
-def check_if_admin():
-    #checking if command invoker has role with name 'Admin'
-    def predicate(ctx):
-        for role in ctx.message.author.roles:
-          if(role.name == 'Admin'):
-            return True
-          
-        return False
-    
-    return commands.check(predicate)
-
-def check_if_player():
-    #checking if command invoker has role with name 'Player'
-    def predicate(ctx):
-        for role in ctx.message.author.roles:
-          if(role.name == 'Player'):
-            return True
-          
-        return False
-    
-    return commands.check(predicate)
-
-
+#converter expected variable type, description for that one parameter
 message_parameter = commands.parameter(converter=str, description="Text as message to be printed back")
+delay_in_seconds_float_parameter = commands.parameter(converter=float, description="Delay in seconds")
+
+async def check_if_admin(ctx):
+    #checking if command invoker has a role with name 'Admin'
+    print("Checking admin")
+
+    for role in ctx.message.author.roles:
+      if(role.name == 'Admin'):
+        return True
+      
+    message = f"{ctx.author.name} is not a player!"
+    await delete_after_delay(ctx, message, 5)
+
+    return False
+
+async def check_if_player(ctx):
+    #checking if command invoker has a role with name 'Player'
+    print("Checking player")
+
+    for role in ctx.message.author.roles:
+      if(role.name == 'Player'):
+        return True
+      
+    message = f"{ctx.author.name} is not a player!"
+    await delete_after_delay(ctx, message, 5)
+
+    return False
+
+
 @commands.command(name='print')
 async def printText(ctx, *,  message = message_parameter):
   """
@@ -66,8 +76,7 @@ Bot prints the text given."""
   await channel.send(message)
 
 
-delay_in_seconds_float_parameter = commands.parameter(converter=float, description="Delay in seconds")
-@commands.command(name='dprint')
+@commands.command(name='dprint', checks=[check_if_admin])
 async def delayedPrint(ctx, delay = delay_in_seconds_float_parameter, *, message = message_parameter):
   """
 Bot prints the text given as reply after delay (in seconds)."""
@@ -77,11 +86,7 @@ Bot prints the text given as reply after delay (in seconds)."""
   await asyncio.sleep(delay)
   await channel.send(message, reference=ctx.message) #reference to ctx.message means reply to message
 
-
-@commands.command(name='reload')
-@check_if_admin()
-# limit, delay, buckettype.default means global cooldown
-@commands.cooldown(1, 10, commands.BucketType.default)
+@commands.command(name='reload', checks=[check_if_admin], cooldown=global_10_second_cooldown)
 async def reloadCommandList(ctx):
   """
 Reloads command list from .csv file
@@ -155,10 +160,7 @@ Output:
   await channel.send(f'Hello {user.name}!')
 
 
-@commands.command(name='changestatus')
-@check_if_admin()
-# limit, delay, buckettype.default means global cooldown
-@commands.cooldown(1, 10, commands.BucketType.default)
+@commands.command(name='changestatus', checks=[check_if_admin], cooldown=global_10_second_cooldown)
 async def change_status(ctx: commands.Context, status: str, *status_message: str) -> None:
   """
   Changes bot status to idle or online and adds text to "Playing ..." status.
@@ -215,10 +217,7 @@ Output:
       await msg_remove_reactions.remove_reaction(reaction, user)
 
 
-@commands.command(name='loadsettings')
-@check_if_admin()
-# limit, delay, buckettype.default means global cooldown
-@commands.cooldown(1, 10, commands.BucketType.default)
+@commands.command(name='loadsettings', checks=[check_if_admin], cooldown=global_10_second_cooldown)
 async def load_settings(ctx):
   """
 Loads settings for bot behavior
@@ -240,8 +239,7 @@ Return:
   return setting_dictionary
 
 
-@commands.command(name='changesetting')
-@check_if_admin()
+@commands.command(name='changesetting', checks=[check_if_admin])
 async def changeSetting(ctx, setting_name: str, setting_value: str):
   """
 Takes settings name and value and changes it, if it exists.
@@ -311,10 +309,7 @@ def is_of_type(valuetype, value):
     
   return True
 
-@commands.command(name='settings')
-@check_if_admin()
-# limit, delay, buckettype.default means global cooldown
-@commands.cooldown(1, 10, commands.BucketType.default)
+@commands.command(name='settings', checks=[check_if_admin], cooldown=global_10_second_cooldown)
 async def showSettings(ctx, *args):
   """
 Shows a list of settings or description of a setting
@@ -420,10 +415,7 @@ async def setup(bot):
     settings.add(main_category)
 
 
-@commands.command(name='validatesetup')
-@check_if_admin()
-#limit, delay, buckettype.default means global cooldown
-@commands.cooldown(1, 5, commands.BucketType.default)
+@commands.command(name='validatesetup', checks=[check_if_admin], cooldown=global_10_second_cooldown)
 async def validateServerSetup(ctx):
   #Checks Settings class for settings to validate, settings that are None are printed with X rest are with ✓
   global settings
@@ -713,11 +705,15 @@ async def info_error(ctx, error):
     await asyncio.sleep(5)
     await delete_after.delete()
 
+
+async def delete_after_delay(channel, delete_message, delay: float):
+    delete_after = await channel.send(delete_message)
+
+    await asyncio.sleep(delay)
+    await delete_after.delete()
+
 # Bot command to change the topic of the channel
-@commands.command(name='topic')
-@check_if_admin()
-# Cooldown to prevent spamming
-@commands.cooldown(1, 5, commands.BucketType.default)
+@commands.command(name='topic', checks=[check_if_admin], cooldown=global_5_second_cooldown)
 async def command_change_channel_topic(ctx, *, topic):
     """
     Change the topic of the channel
