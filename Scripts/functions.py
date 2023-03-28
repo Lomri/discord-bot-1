@@ -294,7 +294,7 @@ def is_of_type(valuetype, value):
 
   if(valuetype == "bool"):
     if(value != 'True' and value != 'False'):
-      return False
+      raise ValueError(f"Given value {value} is not considered as 'bool'")
     
     else:
       return True
@@ -302,7 +302,7 @@ def is_of_type(valuetype, value):
   if(valuetype == "int"):
     #checking if it has anything else than digits, if has then return False, else True
     if(string.ascii_letters in value or string.punctuation in value):
-      return False
+      raise ValueError(f"Given value {value} is not considered as 'int'")
     
     else:
       return True
@@ -684,6 +684,37 @@ class Events(commands.Cog):
 
               await self.delete_after_delay(channel, delete_message, delay)
 
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        #Error handler, prints error to user referring to message error was found
+
+        #error is tuple, convert to list incase multiple errors come
+        error_list = list(error.args)
+        
+        #initialize error message
+        space_count = 0
+        error_message = f'```'
+
+        #loop for errors
+        for error in error_list:
+          error_sectioned = error.split(": ")
+
+          #split sections for easier readability
+          for section in error_sectioned:
+            error_message += ' ' * space_count + section + ':'
+            error_message += '\n'
+            space_count += 4
+
+        #remove \n and : from the end
+        error_message = error_message[:-2]
+        error_message += '```'
+
+        #make a message to notify user about errors and catch the message for delete later
+        delete_after = await ctx.send(error_message, reference=ctx.message)
+
+        await asyncio.sleep(10)
+        await delete_after.delete()
+
     def common_variables(self, payload):
         #variables used in raw reaction events
 
@@ -695,15 +726,6 @@ class Events(commands.Cog):
         channel = guild.get_channel(channel_id)
 
         return message_id,emoji,guild,channel
-
-@delayedPrint.error
-async def info_error(ctx, error):
-    #Error catching and delete message after
-
-    delete_after = await ctx.send(error)
-
-    await asyncio.sleep(5)
-    await delete_after.delete()
 
 
 async def delete_after_delay(channel, delete_message, delay: float):
