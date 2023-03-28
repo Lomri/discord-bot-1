@@ -10,3 +10,5 @@ settings,showSettings,True
 signuphere,signupHere,True
 validatesetup,validateServerSetup,True
 topic,command_change_channel_topic,True
+sync,synchronizeSlashCommands,True
+slash,slashCommand,True
