@@ -55,39 +55,27 @@ def check_if_player():
     return commands.check(predicate)
 
 
+message_parameter = commands.parameter(converter=str, description="Text as message to be printed back")
 @commands.command(name='print')
-async def printText(ctx, *args):
+async def printText(ctx, *,  message = message_parameter):
   """
-Prints everything after the command
-
-Parameters:
-  str: string to print
-
-Output:
-  Message: Sends the text as a message"""
+Bot prints the text given."""
 
   channel = ctx
-  arguments = ' '.join(args)
   
-  await channel.send(arguments)
+  await channel.send(message)
 
 
+delay_in_seconds_float_parameter = commands.parameter(converter=float, description="Delay in seconds")
 @commands.command(name='dprint')
-@check_if_player()
-async def delayedPrint(ctx, delay: float, message: str):
+async def delayedPrint(ctx, delay = delay_in_seconds_float_parameter, *, message = message_parameter):
   """
-Prints text after delay in same message channel.
-
-Parameters:
-  float: delay in seconds
-  str: string requires quotes
-
-Output:
-  Message: Send text as message after delay in seconds"""
+Bot prints the text given as reply after delay (in seconds)."""
 
   channel = ctx
+
   await asyncio.sleep(delay)
-  await channel.send(message, reference=ctx.message) #reference means reply to message
+  await channel.send(message, reference=ctx.message) #reference to ctx.message means reply to message
 
 
 @commands.command(name='reload')
