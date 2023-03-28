@@ -731,6 +731,13 @@ async def info_error(ctx, error):
 # Cooldown to prevent spamming
 @commands.cooldown(1, 5, commands.BucketType.default)
 async def command_change_channel_topic(ctx, *, topic):
+    """
+    Change the topic of the channel
+    
+    Usage: !topic <topic>
+    
+    Example: !topic This is a new topic"""
+    
     await ctx.channel.edit(topic=topic)
 
 # Function to change the topic for the channel
