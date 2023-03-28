@@ -45,14 +45,13 @@ async def check_if_admin(ctx):
     #checking if command invoker has a role with name 'Admin'
     print("Checking if admin")
 
+    # if user has a role called Admin or user id is in the admins_list.csv file, return true
+    if(ctx.message.author.id in admin_ids):
+      return True
+
     for role in ctx.message.author.roles:
       if(role.name == 'Admin'):
         return True
-      
-    message = f"{ctx.author.name} is not an admin!"
-    await delete_after_delay(ctx, message, 5)
-
-    return False
 
 async def check_if_bot_admin(ctx):
     #checking if command invoker has a role with name 'Admin'
